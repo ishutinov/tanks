@@ -1,7 +1,7 @@
-package rest;
+package pt.pmendes.tanks.rest;
 
-import model.GameManager;
-import model.Tank;
+import pt.pmendes.tanks.manager.GameManager;
+import pt.pmendes.tanks.model.Tank;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
@@ -41,14 +41,4 @@ public class TanksResource {
                 .type(MediaType.APPLICATION_JSON).build();
     }
 
-    @PUT
-    @Produces("application/json")
-    @Path("/{id}/x/{posX}/y/{posY}")
-    public Response moveTank(@PathParam("id") String id, @PathParam("posX") Integer posX, @PathParam("posY") Integer posY) {
-        Tank tank = GameManager.getInstance().moveTank(id, posX, posY);
-
-        return Response.status(Response.Status.OK)
-                .entity(tank)
-                .type(MediaType.APPLICATION_JSON).build();
-    }
 }

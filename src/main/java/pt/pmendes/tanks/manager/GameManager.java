@@ -1,4 +1,7 @@
-package model;
+package pt.pmendes.tanks.manager;
+
+import pt.pmendes.tanks.model.Tank;
+import pt.pmendes.tanks.model.WorldMap;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;

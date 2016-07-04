@@ -1,4 +1,4 @@
-package model;
+package pt.pmendes.tanks.model;
 
 public class Tank {
 

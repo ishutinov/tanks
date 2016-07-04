@@ -1,4 +1,4 @@
-package main.java.player;
+package pt.pmendes.tanks.player;
 
 import java.io.Serializable;
 
