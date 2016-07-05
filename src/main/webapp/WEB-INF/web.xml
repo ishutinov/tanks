@@ -3,9 +3,15 @@
          xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd">
     <display-name>Tanks Server Rest</display-name>
 
+    <listener>
+        <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+    </listener>
+
     <servlet>
         <servlet-name>tanks-rest-servlet</servlet-name>
-        <servlet-class>com.sun.jersey.spi.container.servlet.ServletContainer</servlet-class>
+        <servlet-class>
+            com.sun.jersey.spi.spring.container.servlet.SpringServlet
+        </servlet-class>
         <init-param>
             <param-name>com.sun.jersey.config.property.packages</param-name>
             <param-value>pt.pmendes.tanks.rest</param-value>
@@ -22,12 +28,13 @@
         <url-pattern>/rest/*</url-pattern>
     </servlet-mapping>
 
+
     <servlet>
         <servlet-name>tanks-ws-servlet</servlet-name>
         <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
         <init-param>
             <param-name>contextConfigLocation</param-name>
-            <param-value>/WEB-INF/application-context.xml</param-value>
+            <param-value>/WEB-INF/applicationContext-ws.xml</param-value>
         </init-param>
         <load-on-startup>1</load-on-startup>
         <async-supported>true</async-supported>
@@ -35,7 +42,7 @@
 
     <servlet-mapping>
         <servlet-name>tanks-ws-servlet</servlet-name>
-        <url-pattern>/</url-pattern>
+        <url-pattern>/ws/*</url-pattern>
     </servlet-mapping>
 
 </web-app>

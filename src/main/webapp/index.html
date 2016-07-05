@@ -1,12 +1,104 @@
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" xmlns:g="http://www.backbase.com/2008/gadget">
+<html>
 <head>
-    <meta http-equiv="Content-Type" content="text/xml; charset=UTF-8"/>
-    <script src="js/jquery-1.12.4.min.js"></script>
-</head>
-<body>
+    <title>Tanks!</title>
+    <script src="js/jquery-3.0.0.js"></script>
+    <script src="js/sockjs-0.3.4.js"></script>
+    <script src="js/stomp.js"></script>
+    <script type="text/javascript">
+        var stompClient = null;
 
-<h2>Welcome to tanks!</h2>
+        function setConnected(connected) {
+            document.getElementById('connect').disabled = connected;
+            document.getElementById('disconnect').disabled = !connected;
+            document.getElementById('conversationDiv').style.visibility = connected ? 'visible' : 'hidden';
+        }
+
+        function connect() {
+            var socket = new SockJS('/ws/tank');
+            stompClient = Stomp.over(socket);
+            // turn off the debug messages
+            stompClient.debug = null;
+            stompClient.connect({}, function (frame) {
+                setConnected(true);
+                stompClient.subscribe('/topic/world', function (message) {
+                    console.log("World: " + message.body);
+                });
+            });
+        }
+
+        function disconnect() {
+            if (stompClient != null) {
+                stompClient.disconnect();
+            }
+            setConnected(false);
+            console.log("Disconnected");
+        }
+
+        function joinGame() {
+            var name = document.getElementById('name').value;
+            $.post('/rest/tanks/' + name, {}, function (result) {
+                console.log("A new player has joined: ", name);
+            });
+        }
+
+        function showGreeting(message) {
+            var response = document.getElementById('response');
+            var p = document.createElement('p');
+            p.style.wordWrap = 'break-word';
+            p.appendChild(document.createTextNode(message));
+            response.appendChild(p);
+        }
+
+        function createWorld(data) {
+            var canvas = document.getElementById("canvas"),
+                    ctx = canvas.getContext("2d"),
+                    width = data.map.width,
+                    height = data.map.height,
+                    playerA = {
+                        x: width / 2,
+                        y: height - 5,
+                        width: 5,
+                        height: 5,
+                        speed: 3,
+                        velX: 0,
+                        velY: 0,
+                        jumping: false
+                    },
+                    playerB = {
+                        x: width / 3,
+                        y: height - 5,
+                        width: 5,
+                        height: 5,
+                        speed: 3,
+                        velX: 0,
+                        velY: 0,
+                        jumping: false
+                    },
+                    keys = [],
+                    friction = 0.8,
+                    gravity = 0.2;
+
+            canvas.width = width;
+            canvas.height = height;
+        }
+    </script>
+</head>
+<body onload="disconnect()">
+<noscript><h2 style="color: #ff0000">Seems your browser doesn't support Javascript! Websocket relies on Javascript being
+    enabled. Please enable
+    Javascript and reload this page!</h2></noscript>
+
+<div>
+    <div>
+        <button id="connect" onclick="connect();">Connect</button>
+        <button id="disconnect" disabled="disabled" onclick="disconnect();">Disconnect</button>
+    </div>
+    <div id="conversationDiv" style="margin-top: 20px;">
+        <label>What is your name?</label><input type="text" id="name" style="margin: 20px;"/>
+        <button id="sendName" onclick="joinGame();">Join</button>
+    </div>
+</div>
 
 
 <style>
@@ -20,115 +112,6 @@
 </style>
 
 <canvas id="canvas" width="1024" height="768"></canvas>
-
-<script>
-    (function () {
-        var requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame;
-        window.requestAnimationFrame = requestAnimationFrame;
-    })();
-
-    $.getJSON("/rest/tanks/",
-            function(data) {
-                console.log(data);
-                createWorld(data)
-            });
-
-
-    function createWorld(data) {
-        var canvas = document.getElementById("canvas"),
-                ctx = canvas.getContext("2d"),
-                width = data.map.width,
-                height = data.map.height,
-                playerA = {
-                    x: width / 2,
-                    y: height - 5,
-                    width: 5,
-                    height: 5,
-                    speed: 3,
-                    velX: 0,
-                    velY: 0,
-                    jumping: false
-                },
-                playerB = {
-                    x: width / 3,
-                    y: height - 5,
-                    width: 5,
-                    height: 5,
-                    speed: 3,
-                    velX: 0,
-                    velY: 0,
-                    jumping: false
-                },
-                keys = [],
-                friction = 0.8,
-                gravity = 0.2;
-
-        canvas.width = width;
-        canvas.height = height;
-    }
-
-    function update() {
-        // check keys
-        if (keys[38] || keys[32]) {
-            // up arrow or space
-            if (!playerA.jumping) {
-                playerA.jumping = true;
-                playerA.velY = -playerA.speed * 2;
-            }
-        }
-        if (keys[39]) {
-            // right arrow
-            if (playerA.velX < playerA.speed) {
-                playerA.velX++;
-            }
-        }
-        if (keys[37]) {
-            // left arrow
-            if (playerA.velX > -playerA.speed) {
-                playerA.velX--;
-            }
-        }
-
-        playerA.velX *= friction;
-
-        playerA.velY += gravity;
-
-        playerA.x += playerA.velX;
-        playerA.y += playerA.velY;
-
-        if (playerA.x >= width - playerA.width) {
-            playerA.x = width - playerA.width;
-        } else if (playerA.x <= 0) {
-            playerA.x = 0;
-        }
-
-        if (playerA.y >= height - playerA.height) {
-            playerA.y = height - playerA.height;
-            playerA.jumping = false;
-        }
-
-        ctx.clearRect(0, 0, width, height);
-        ctx.fillStyle = "red";
-        ctx.fillRect(playerA.x, playerA.y, playerA.width, playerA.height);
-
-        ctx.fillStyle = "blue";
-        ctx.fillRect(playerB.x, playerB.y, playerB.width, playerB.height);
-
-        requestAnimationFrame(update);
-    }
-
-    document.body.addEventListener("keydown", function (e) {
-        keys[e.keyCode] = true;
-    });
-
-    document.body.addEventListener("keyup", function (e) {
-        keys[e.keyCode] = false;
-    });
-
-    window.addEventListener("load", function () {
-        update();
-    });
-</script>
 
 </body>
 </html>
