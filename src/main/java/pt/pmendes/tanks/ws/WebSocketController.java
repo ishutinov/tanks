@@ -20,12 +20,13 @@ public class WebSocketController {
     @Autowired
     private GameManager gameManager;
 
-    @MessageMapping("/tank")
-    public void handleTank(MoveTankMessage message) {
-        logger.info("Incoming tank message:\n {}", message);
+    @MessageMapping("/tank/move")
+    public void handleTank(MoveTankMessage moveTankMessage) {
+        logger.info("Incoming tank message:\n {}", moveTankMessage);
+        gameManager.moveTank(moveTankMessage.getTankId(), moveTankMessage.getPosX(), moveTankMessage.getPosY());
     }
 
-    @Scheduled(fixedRate = (1000))
+    @Scheduled(fixedRate = (1000 / 30))
     public void sendMessage() throws Exception {
         ObjectMapper mapper = new ObjectMapper();
         String message = mapper.writeValueAsString(gameManager.getGameFrame());

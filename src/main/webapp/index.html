@@ -5,102 +5,7 @@
     <script src="js/jquery-3.0.0.js"></script>
     <script src="js/sockjs-0.3.4.js"></script>
     <script src="js/stomp.js"></script>
-    <script type="text/javascript">
-        var stompClient = null;
-
-        function setConnected(connected) {
-            document.getElementById('connect').disabled = connected;
-            document.getElementById('disconnect').disabled = !connected;
-            document.getElementById('conversationDiv').style.visibility = connected ? 'visible' : 'hidden';
-        }
-
-        function connect() {
-            var socket = new SockJS('/ws/tank');
-            stompClient = Stomp.over(socket);
-            // turn off the debug messages
-            stompClient.debug = null;
-            stompClient.connect({}, function (frame) {
-                setConnected(true);
-                stompClient.subscribe('/topic/world', function (message) {
-                    console.log("World: " + message.body);
-                });
-            });
-        }
-
-        function disconnect() {
-            if (stompClient != null) {
-                stompClient.disconnect();
-            }
-            setConnected(false);
-            console.log("Disconnected");
-        }
-
-        function joinGame() {
-            var name = document.getElementById('name').value;
-            $.post('/rest/tanks/' + name, {}, function (result) {
-                console.log("A new player has joined: ", name);
-            });
-        }
-
-        function showGreeting(message) {
-            var response = document.getElementById('response');
-            var p = document.createElement('p');
-            p.style.wordWrap = 'break-word';
-            p.appendChild(document.createTextNode(message));
-            response.appendChild(p);
-        }
-
-        function createWorld(data) {
-            var canvas = document.getElementById("canvas"),
-                    ctx = canvas.getContext("2d"),
-                    width = data.map.width,
-                    height = data.map.height,
-                    playerA = {
-                        x: width / 2,
-                        y: height - 5,
-                        width: 5,
-                        height: 5,
-                        speed: 3,
-                        velX: 0,
-                        velY: 0,
-                        jumping: false
-                    },
-                    playerB = {
-                        x: width / 3,
-                        y: height - 5,
-                        width: 5,
-                        height: 5,
-                        speed: 3,
-                        velX: 0,
-                        velY: 0,
-                        jumping: false
-                    },
-                    keys = [],
-                    friction = 0.8,
-                    gravity = 0.2;
-
-            canvas.width = width;
-            canvas.height = height;
-        }
-    </script>
 </head>
-<body onload="disconnect()">
-<noscript><h2 style="color: #ff0000">Seems your browser doesn't support Javascript! Websocket relies on Javascript being
-    enabled. Please enable
-    Javascript and reload this page!</h2></noscript>
-
-<div>
-    <div>
-        <button id="connect" onclick="connect();">Connect</button>
-        <button id="disconnect" disabled="disabled" onclick="disconnect();">Disconnect</button>
-    </div>
-    <div id="conversationDiv" style="margin-top: 20px;">
-        <label>What is your name?</label><input type="text" id="name" style="margin: 20px;"/>
-        <button id="sendName" onclick="joinGame();">Join</button>
-    </div>
-</div>
-
-
 <style>
     body {
         background-color: #F3F3F3;
@@ -111,7 +16,132 @@
     }
 </style>
 
+<body onload="disconnect()">
+
+<div>
+    <div>
+        <button id="connect" onclick="connect();">Connect</button>
+        <button id="disconnect" disabled="disabled" onclick="disconnect();">Disconnect</button>
+    </div>
+    <div id="conversationDiv">
+        <label>What is your name?</label><input type="text" id="name" style="margin: 20px;"/>
+        <button id="sendName" onclick="joinGame();">Join</button>
+    </div>
+</div>
+
+
 <canvas id="canvas" width="1024" height="768"></canvas>
+
+<div id="gameLog"></div>
+
+
+<script type="text/javascript">
+    var stompClient = null;
+    var ctx = null;
+    var world = {};
+    var tankId = null;
+
+    function setConnected(connected) {
+        document.getElementById('connect').disabled = connected;
+        document.getElementById('disconnect').disabled = !connected;
+        document.getElementById('conversationDiv').style.visibility = connected ? 'visible' : 'hidden';
+    }
+
+    function connect() {
+        var socket = new SockJS('/ws/tank');
+        stompClient = Stomp.over(socket);
+        // turn off the debug messages
+        stompClient.debug = null;
+        stompClient.connect({}, function (frame) {
+            setConnected(true);
+            stompClient.subscribe('/topic/world', function (message) {
+                world = JSON.parse(message.body);
+                if (ctx === null) {
+                    ctx = createContext(world);
+                }
+                draw(ctx, world);
+                console.log("World: " + message.body);
+            });
+        });
+    }
+
+    function disconnect() {
+        if (stompClient != null) {
+            stompClient.disconnect();
+        }
+        setConnected(false);
+        console.log("Disconnected");
+    }
+
+    function joinGame() {
+        var name = document.getElementById('name').value;
+        $.post('/rest/tanks/' + name, {}, function (result) {
+            tankId = name;
+            $('#gameLog').append('<p>' + name + ' has joined' + '</p>');
+        });
+    }
+
+    function moveTank(tankId, posX, posY) {
+        stompClient.send("/tank/move", {priority: 0}, JSON.stringify({tankId: tankId, posX: posX, posY: posY}));
+    }
+
+    function createContext(world) {
+        var canvas = document.getElementById("canvas"),
+                ctx = canvas.getContext("2d"),
+                width = world.map.width,
+                height = world.map.height,
+                keys = [],
+                friction = 0.8,
+                gravity = 0.2;
+        canvas.width = width;
+        canvas.height = height;
+        return ctx;
+    }
+
+    function draw(ctx, world) {
+        var drawTank = function (ball) {
+            ctx.beginPath();
+            ctx.arc(ball.posX, ball.posY, 10, 0, Math.PI * 2);
+            ctx.fillStyle = "#0095DD";
+            ctx.fill();
+            ctx.closePath();
+        };
+        ctx.clearRect(0, 0, world.map.width, world.map.width);
+        for (var key in world.tanks) {
+            if (world.tanks.hasOwnProperty(key)) {
+                drawTank(world.tanks[key]);
+            }
+        }
+    }
+
+    function moveTankRight() {
+        var tank = world.tanks[tankId];
+        tank.posX += 2;
+        moveTank(tankId, tank.posX, tank.posY);
+    }
+
+    function moveTankLeft() {
+        var tank = world.tanks[tankId];
+        tank.posX -= 2;
+        moveTank(tankId, tank.posX, tank.posY);
+    }
+
+    $(document).ready(function () {
+        $(document).bind('keydown', function (e) {
+            key = e.keyCode;
+            if (key == 37) {
+                moveTankLeft();
+            } else if (key == 38) {
+//                moveTankLeft();
+            } else if (key == 39) {
+                moveTankRight();
+            } else if (key == 40) {
+//                moveTankDown();
+            }
+        });
+    });
+
+</script>
 
 </body>
 </html>

@@ -40,10 +40,7 @@ public class GameManager {
     }
 
     public Tank getTank(String tankId) {
-        if (gameFrame.getTanks().containsKey(tankId)) {
-            return gameFrame.getTanks().get(tankId);
-        }
-        return null;
+        return gameFrame.getTanks().get(tankId);
     }
 
     public GameFrame getGameFrame() {

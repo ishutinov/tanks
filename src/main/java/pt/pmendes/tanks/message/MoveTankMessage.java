@@ -1,9 +1,11 @@
 package pt.pmendes.tanks.message;
 
+import java.io.Serializable;
+
 /**
- * Created by pmendes on 07/05/2016.
+ * Created by pmendes.
  */
-public class MoveTankMessage implements Message {
+public class MoveTankMessage implements Serializable {
     private String tankId;
     private int posX;
     private int posY;
@@ -30,5 +32,9 @@ public class MoveTankMessage implements Message {
 
     public void setPosY(int posY) {
         this.posY = posY;
+    }
+
+    public String toString() {
+        return "{tankId: " + tankId + ", posX: " + posX + ", posY: " + posY + "}";
     }
 }
