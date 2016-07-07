@@ -18,6 +18,8 @@ public class Tank extends BaseModel {
     private int height = TANK_HEIGHT;
     @XmlElement
     private String color;
+    @XmlElement
+    private double speed;
 
     public Tank(String id, int posX, int posY) {
         super(id, posX, posY);
@@ -40,10 +42,22 @@ public class Tank extends BaseModel {
         return getPosY() + speed * Math.sin(radians);
     }
 
-    public void move(double speed) {
+    public void move() {
+        if (speed == 0) {
+            return;
+        }
         double radians = Math.toRadians(getRotation() - 90);
         setPosX(getPosX() + speed * Math.cos(radians));
         setPosY(getPosY() + speed * Math.sin(radians));
+    }
+
+    public boolean isCollidingWith(BaseModel model) {
+        return (Math.abs(getPosX() - model.getPosX()) <= Tank.TANK_WIDTH)
+                && (Math.abs(getPosY() - model.getPosY()) <= Tank.TANK_WIDTH);
+    }
+
+    public boolean hasFiredBullet(Bullet bullet) {
+        return bullet.getTankId().equals(getId());
     }
 
     public String getColor() {
@@ -62,5 +76,17 @@ public class Tank extends BaseModel {
         return height;
     }
 
+    public double getSpeed() {
+        return speed;
+    }
 
+    public void setSpeed(double speed) {
+        if (speed < -3) {
+            this.speed = -3;
+        }
+        if (speed > 8) {
+            this.speed = 8;
+        }
+        this.speed = speed;
+    }
 }

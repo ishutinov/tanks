@@ -11,6 +11,7 @@ import org.springframework.stereotype.Controller;
 import pt.pmendes.tanks.manager.GameManager;
 import pt.pmendes.tanks.message.FireBulletMessage;
 import pt.pmendes.tanks.message.MoveTankMessage;
+import pt.pmendes.tanks.model.GameMessage;
 
 @Controller
 public class WebSocketController {
@@ -31,6 +32,11 @@ public class WebSocketController {
     public void handleFireBullet(FireBulletMessage fireBulletMessage) {
         logger.info("Incoming fire bullet message:\n {}", fireBulletMessage);
         gameManager.fireBullet(fireBulletMessage.getTankId());
+    }
+
+    @MessageMapping("/message")
+    public void handleIncomingMessage(GameMessage gameMessage) {
+        gameManager.addGameMessage(gameMessage);
     }
 
     @Scheduled(fixedRate = (1000 / 30))

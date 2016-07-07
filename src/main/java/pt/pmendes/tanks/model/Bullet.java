@@ -27,4 +27,6 @@ public class Bullet extends BaseModel {
         setPosX(getPosX() + BULLET_SPEED * Math.cos(radians));
         setPosY(getPosY() + BULLET_SPEED * Math.sin(radians));
     }
+
+
 }

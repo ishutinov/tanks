@@ -22,7 +22,7 @@
         <button id="connect" onclick="connect();">Connect</button>
         <button id="disconnect" disabled="disabled" onclick="disconnect();">Disconnect</button>
     </div>
-    <div id="conversationDiv">
+    <div id="joinGame">
         <label>What is your name?</label><input type="text" id="name" style="margin: 20px;"/>
         <button id="sendName" onclick="joinGame();">Join</button>
     </div>
@@ -44,7 +44,7 @@
     function setConnected(connected) {
         document.getElementById('connect').disabled = connected;
         document.getElementById('disconnect').disabled = !connected;
-        document.getElementById('conversationDiv').style.visibility = connected ? 'visible' : 'hidden';
+        document.getElementById('joinGame').style.visibility = connected ? 'visible' : 'hidden';
     }
 
     function connect() {
@@ -77,8 +77,16 @@
         var name = document.getElementById('name').value;
         $.post('/rest/tanks/' + name, {}, function (result) {
             tankId = name;
-            $('#gameLog').append('<p>' + name + ' has joined' + '</p>');
+            document.getElementById('joinGame').style.visibility = 'hidden';
+            sendMessage(tankId, tankId + ' has joined');
         });
+    }
+
+    function sendMessage(tankId, message) {
+        stompClient.send("/message", {priority: 2}, JSON.stringify({
+            playerId: tankId,
+            message: message
+        }));
     }
 
     function moveTank(tankId, speed, rotation) {
@@ -89,7 +97,7 @@
         }));
     }
 
-    function fire(tankId) {
+    function fireBullet() {
         stompClient.send("/tank/fire", {priority: 0}, JSON.stringify({
             tankId: tankId
         }));
@@ -145,11 +153,19 @@
         }
     }
 
-
     function draw(ctx, world) {
         ctx.clearRect(0, 0, world.map.width, world.map.width);
         drawTanks(world);
         drawBullets(world);
+        drawMessages(world);
+    }
+
+    function drawMessages(world) {
+        $('#gameLog').html('');
+        for (var i = 0; i < world.messages.length; i++) {
+            var message = world.messages[i];
+            $('#gameLog').append('<p>' + message.message + '</p>');
+        }
     }
 
     function rotateTankLeft() {
@@ -166,7 +182,9 @@
 
     function moveTankForward() {
         var tank = world.tanks[tankId];
-        tank.speed = 1;
+        if (tank.speed < 2) {
+            tank.speed += 0.2;
+        }
         moveTank(tankId, tank.speed, tank.rotation);
     }
 
@@ -176,9 +194,10 @@
         moveTank(tankId, tank.speed, tank.rotation);
     }
 
-    function fireBullet() {
+    function stopTank() {
         var tank = world.tanks[tankId];
-        fire(tankId);
+        tank.speed = 0;
+        moveTank(tankId, tank.speed, tank.rotation);
     }
 
     $(document).ready(function () {
@@ -194,6 +213,13 @@
                 moveTankBackwards();
             } else if (key == 32) {
                 fireBullet();
+            }
+        });
+        $(document).bind('keyup', function (e) {
+            key = e.keyCode;
+            console.log("keyup");
+            if (key == 38 || key == 40) {
+                stopTank();
             }
         });
     });

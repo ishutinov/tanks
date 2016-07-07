@@ -1,19 +1,17 @@
 package pt.pmendes.tanks.manager;
 
 import org.springframework.stereotype.Component;
-import pt.pmendes.tanks.model.Bullet;
-import pt.pmendes.tanks.model.GameFrame;
-import pt.pmendes.tanks.model.Tank;
-import pt.pmendes.tanks.model.WorldMap;
+import pt.pmendes.tanks.model.*;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
 @Component
 public class GameManager {
-    private final static int CANVAS_WIDTH = 640;
-    private final static int CANVAS_HEIGHT = 480;
+    public final static int CANVAS_WIDTH = 640;
+    public final static int CANVAS_HEIGHT = 480;
 
     private GameFrame gameFrame;
 
@@ -22,18 +20,16 @@ public class GameManager {
     }
 
     public synchronized Tank moveTank(String tankId, double speed, double rotation) {
+        Tank tank = null;
         if (gameFrame.getTanks().containsKey(tankId)) {
-            Tank tank = gameFrame.getTanks().get(tankId);
-            double projectX = tank.calculateNewX(speed);
-            double projectY = tank.calculateNewY(speed);
-            if (canMove(tankId, projectX, projectY)) {
+            tank = gameFrame.getTanks().get(tankId);
+            if (canMove(tankId, tank.calculateNewX(speed), tank.calculateNewY(speed))) {
+                tank.setSpeed(speed);
                 tank.setRotation(rotation);
-                if (speed != 0) {
-                    tank.move(speed);
-                }
+                tank.move();
             }
         }
-        return gameFrame.getTanks().get(tankId);
+        return tank;
     }
 
     public synchronized Tank addTank(String tankId) {
@@ -75,8 +71,27 @@ public class GameManager {
     }
 
     public void updateGameFrame() {
-        for (Bullet bullet : getBullets()) {
+        Collection<Bullet> bullets = new ArrayList<Bullet>(getBullets());
+        for (Bullet bullet : bullets) {
             bullet.move();
+            removeOutOfBoundsBullets(bullet);
+            updateTanks(bullet);
+        }
+    }
+
+    private void updateTanks(Bullet bullet) {
+        Collection<Tank> tanks = new ArrayList<Tank>(getTanks());
+        for (Tank tank : tanks) {
+            if (!tank.hasFiredBullet(bullet) && tank.isCollidingWith(bullet)) {
+                gameFrame.removeTank(tank.getId());
+                gameFrame.removeBullet(bullet.getId());
+            }
+        }
+    }
+
+    private void removeOutOfBoundsBullets(Bullet bullet) {
+        if (bullet.isOutOfBounds()) {
+            gameFrame.removeBullet(bullet.getId());
         }
     }
 
@@ -96,4 +111,7 @@ public class GameManager {
         return gameFrame;
     }
 
+    public void addGameMessage(GameMessage gameMessage) {
+        gameFrame.addGameMessage(gameMessage);
+    }
 }

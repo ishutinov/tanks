@@ -1,5 +1,7 @@
 package pt.pmendes.tanks.model;
 
+import pt.pmendes.tanks.manager.GameManager;
+
 /**
  * Created by pmendes.
  */
@@ -56,5 +58,13 @@ public abstract class BaseModel {
 
     public double getRotation() {
         return rotation;
+    }
+
+    public boolean isCollidingWith(BaseModel model) {
+        return this.posX == model.getPosX() && this.posY == model.getPosX();
+    }
+
+    public boolean isOutOfBounds() {
+        return getPosX() < 0 || getPosY() < 0 || getPosX() >= GameManager.CANVAS_WIDTH || getPosY() >= GameManager.CANVAS_HEIGHT;
     }
 }
