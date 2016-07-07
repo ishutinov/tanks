@@ -8,65 +8,42 @@ import java.util.concurrent.ThreadLocalRandom;
 
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
-public class Tank {
-    public static final int TANK_WIDTH = 10;
+public class Tank extends BaseModel {
+    public static final int TANK_WIDTH = 22;
+    public static final int TANK_HEIGHT = 52;
 
     @XmlElement
-    private String id;
+    private int width = TANK_WIDTH;
     @XmlElement
-    private double posX;
-    @XmlElement
-    private double posY;
-    @XmlElement
-    private double rotation;
+    private int height = TANK_HEIGHT;
     @XmlElement
     private String color;
 
     public Tank(String id, int posX, int posY) {
-        this.id = id;
-        this.posX = posX;
-        this.posY = posY;
-        this.rotation = ThreadLocalRandom.current().nextInt(0, 359);
+        super(id, posX, posY);
+        setRotation(ThreadLocalRandom.current().nextInt(0, 359));
     }
 
     public Tank(String id, int posX, int posY, String color) {
-        this.id = id;
-        this.posX = posX;
-        this.posY = posY;
+        super(id, posX, posY);
         this.color = color;
-        this.rotation = ThreadLocalRandom.current().nextInt(0, 359);
+        setRotation(ThreadLocalRandom.current().nextInt(0, 359));
     }
 
     public double calculateNewX(double speed) {
-        double radians = Math.toRadians(this.rotation - 90);
-        return this.posX + speed * Math.cos(radians);
+        double radians = Math.toRadians(getRotation() - 90);
+        return getPosX() + speed * Math.cos(radians);
     }
 
     public double calculateNewY(double speed) {
-        double radians = Math.toRadians(this.rotation - 90);
-        return this.posY + speed * Math.sin(radians);
+        double radians = Math.toRadians(getRotation() - 90);
+        return getPosY() + speed * Math.sin(radians);
     }
 
     public void move(double speed) {
-        double radians = Math.toRadians(this.rotation - 90);
-        this.posX += speed * Math.cos(radians);
-        this.posY += speed * Math.sin(radians);
-    }
-
-    public double getPosX() {
-        return posX;
-    }
-
-    private void setPosX(double posX) {
-        this.posX = posX;
-    }
-
-    public double getPosY() {
-        return posY;
-    }
-
-    private void setPosY(double posY) {
-        this.posY = posY;
+        double radians = Math.toRadians(getRotation() - 90);
+        setPosX(getPosX() + speed * Math.cos(radians));
+        setPosY(getPosY() + speed * Math.sin(radians));
     }
 
     public String getColor() {
@@ -78,21 +55,12 @@ public class Tank {
     }
 
     public int getWidth() {
-        return TANK_WIDTH;
+        return width;
     }
 
-    public String getId() {
-        return id;
+    public int getHeight() {
+        return height;
     }
 
-    public double getRotation() {
-        return rotation;
-    }
 
-    public void setRotation(double rotation) {
-        this.rotation = rotation;
-        if (this.rotation <= -360 || this.rotation >= 360) {
-            this.rotation = 0;
-        }
-    }
 }

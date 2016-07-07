@@ -1,12 +1,13 @@
 package pt.pmendes.tanks.manager;
 
 import org.springframework.stereotype.Component;
+import pt.pmendes.tanks.model.Bullet;
 import pt.pmendes.tanks.model.GameFrame;
 import pt.pmendes.tanks.model.Tank;
 import pt.pmendes.tanks.model.WorldMap;
 
 import java.util.Collection;
-import java.util.HashMap;
+import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
 @Component
@@ -17,11 +18,7 @@ public class GameManager {
     private GameFrame gameFrame;
 
     public GameManager() {
-        WorldMap worldMap = new WorldMap(CANVAS_WIDTH, CANVAS_HEIGHT);
-        HashMap<String, Tank> tanks = new HashMap<String, Tank>();
-        if (gameFrame == null) {
-            this.gameFrame = new GameFrame(worldMap, tanks);
-        }
+        this.gameFrame = new GameFrame(new WorldMap(CANVAS_WIDTH, CANVAS_HEIGHT));
     }
 
     public synchronized Tank moveTank(String tankId, double speed, double rotation) {
@@ -59,11 +56,28 @@ public class GameManager {
             if (tank.getId().equals(tankId)) {
                 continue;
             }
-            if (Math.abs(tank.getPosX() - toX) <= Tank.TANK_WIDTH && Math.abs(tank.getPosY() - toY) <= Tank.TANK_WIDTH) {
+            if ((Math.abs(tank.getPosX() - toX) <= Tank.TANK_WIDTH ||
+                    Math.abs(tank.getPosX() - toX) <= Tank.TANK_HEIGHT)
+                    && (Math.abs(tank.getPosY() - toY) <= Tank.TANK_WIDTH ||
+                    Math.abs(tank.getPosY() - toY) <= Tank.TANK_HEIGHT)) {
                 return false;
             }
         }
         return true;
+    }
+
+    public void fireBullet(String tankId) {
+        Tank tank = getTank(tankId);
+        if (tank != null) {
+            Bullet newBullet = new Bullet(UUID.randomUUID().toString(), tank.getId(), tank.getPosX(), tank.getPosY(), tank.getRotation());
+            getGameFrame().getBullets().put(newBullet.getId(), newBullet);
+        }
+    }
+
+    public void updateGameFrame() {
+        for (Bullet bullet : getBullets()) {
+            bullet.move();
+        }
     }
 
     public Tank getTank(String tankId) {
@@ -74,9 +88,12 @@ public class GameManager {
         return getGameFrame().getTanks().values();
     }
 
+    private Collection<Bullet> getBullets() {
+        return getGameFrame().getBullets().values();
+    }
+
     public GameFrame getGameFrame() {
         return gameFrame;
     }
-
 
 }

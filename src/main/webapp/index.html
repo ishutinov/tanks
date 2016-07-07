@@ -89,15 +89,17 @@
         }));
     }
 
+    function fire(tankId) {
+        stompClient.send("/tank/fire", {priority: 0}, JSON.stringify({
+            tankId: tankId
+        }));
+    }
+
     function createContext(world) {
         var canvas = document.getElementById("canvas"),
-                ctx = canvas.getContext("2d"),
-                width = world.map.width,
-                height = world.map.height,
-                friction = 0.8,
-                gravity = 0.2;
-        canvas.width = width;
-        canvas.height = height;
+                ctx = canvas.getContext("2d");
+        canvas.width = world.map.width;
+        canvas.height = world.map.height;
         return ctx;
     }
 
@@ -110,11 +112,11 @@
         ctx.restore();
     }
 
-    function draw(ctx, world) {
+    function drawTanks(world) {
         var createTank = function (tank) {
             tankImg = new Image();
             tankImg.onload = function () {
-                ctx.drawImage(tankImg, tank.posX / 2, tank.posY / 2, 36, 87);
+                ctx.drawImage(tankImg, tank.posX / 2, tank.posY / 2, tank.width, tank.height);
             };
             tankImg.src = 'img/tank.png';
         };
@@ -124,12 +126,30 @@
             }
             drawRotatedImage(ctx, tankImg, tank.posX, tank.posY, tank.rotation);
         };
-        ctx.clearRect(0, 0, world.map.width, world.map.width);
         for (var key in world.tanks) {
             if (world.tanks.hasOwnProperty(key)) {
                 drawTank(world.tanks[key]);
             }
         }
+    }
+    function drawBullets(world) {
+        for (var key in world.bullets) {
+            if (world.bullets.hasOwnProperty(key)) {
+                var bullet = world.bullets[key];
+                ctx.beginPath();
+                ctx.arc(bullet.posX, bullet.posY, bullet.radius, 0, Math.PI * 2);
+                ctx.fillStyle = "#0095DD";
+                ctx.fill();
+                ctx.closePath();
+            }
+        }
+    }
+
+
+    function draw(ctx, world) {
+        ctx.clearRect(0, 0, world.map.width, world.map.width);
+        drawTanks(world);
+        drawBullets(world);
     }
 
     function rotateTankLeft() {
@@ -156,6 +176,11 @@
         moveTank(tankId, tank.speed, tank.rotation);
     }
 
+    function fireBullet() {
+        var tank = world.tanks[tankId];
+        fire(tankId);
+    }
+
     $(document).ready(function () {
         $(document).bind('keydown', function (e) {
             key = e.keyCode;
@@ -167,6 +192,8 @@
                 rotateTankRight();
             } else if (key == 40) {
                 moveTankBackwards();
+            } else if (key == 32) {
+                fireBullet();
             }
         });
     });

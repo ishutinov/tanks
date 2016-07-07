@@ -9,6 +9,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Controller;
 import pt.pmendes.tanks.manager.GameManager;
+import pt.pmendes.tanks.message.FireBulletMessage;
 import pt.pmendes.tanks.message.MoveTankMessage;
 
 @Controller
@@ -26,9 +27,17 @@ public class WebSocketController {
         gameManager.moveTank(moveTankMessage.getTankId(), moveTankMessage.getSpeed(), moveTankMessage.getRotation());
     }
 
+    @MessageMapping("/tank/fire")
+    public void handleFireBullet(FireBulletMessage fireBulletMessage) {
+        logger.info("Incoming fire bullet message:\n {}", fireBulletMessage);
+        gameManager.fireBullet(fireBulletMessage.getTankId());
+    }
+
     @Scheduled(fixedRate = (1000 / 30))
     public void sendMessage() throws Exception {
         ObjectMapper mapper = new ObjectMapper();
+        //TODO: move this out of here
+        gameManager.updateGameFrame();
         String message = mapper.writeValueAsString(gameManager.getGameFrame());
         brokerMessagingTemplate.convertAndSend("/topic/world", message);
     }
