@@ -4,18 +4,21 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
+import java.util.concurrent.ThreadLocalRandom;
 
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
 public class Tank {
+    public static final int TANK_WIDTH = 10;
 
     @XmlElement
     private String id;
     @XmlElement
-    private int posX;
+    private double posX;
     @XmlElement
-    private int posY;
-    private int width = 5;
+    private double posY;
+    @XmlElement
+    private double rotation;
     @XmlElement
     private String color;
 
@@ -23,6 +26,7 @@ public class Tank {
         this.id = id;
         this.posX = posX;
         this.posY = posY;
+        this.rotation = ThreadLocalRandom.current().nextInt(0, 359);
     }
 
     public Tank(String id, int posX, int posY, String color) {
@@ -30,26 +34,38 @@ public class Tank {
         this.posX = posX;
         this.posY = posY;
         this.color = color;
+        this.rotation = ThreadLocalRandom.current().nextInt(0, 359);
     }
 
-    public void move(int newPosX, int newPosY) {
-        setPosX(newPosX);
-        setPosY(newPosY);
+    public double calculateNewX(double speed) {
+        double radians = Math.toRadians(this.rotation - 90);
+        return this.posX + speed * Math.cos(radians);
     }
 
-    public int getPosX() {
+    public double calculateNewY(double speed) {
+        double radians = Math.toRadians(this.rotation - 90);
+        return this.posY + speed * Math.sin(radians);
+    }
+
+    public void move(double speed) {
+        double radians = Math.toRadians(this.rotation - 90);
+        this.posX += speed * Math.cos(radians);
+        this.posY += speed * Math.sin(radians);
+    }
+
+    public double getPosX() {
         return posX;
     }
 
-    private void setPosX(int posX) {
+    private void setPosX(double posX) {
         this.posX = posX;
     }
 
-    public int getPosY() {
+    public double getPosY() {
         return posY;
     }
 
-    private void setPosY(int posY) {
+    private void setPosY(double posY) {
         this.posY = posY;
     }
 
@@ -62,10 +78,21 @@ public class Tank {
     }
 
     public int getWidth() {
-        return width;
+        return TANK_WIDTH;
     }
 
     public String getId() {
         return id;
+    }
+
+    public double getRotation() {
+        return rotation;
+    }
+
+    public void setRotation(double rotation) {
+        this.rotation = rotation;
+        if (this.rotation <= -360 || this.rotation >= 360) {
+            this.rotation = 0;
+        }
     }
 }

@@ -7,8 +7,8 @@ import java.io.Serializable;
  */
 public class MoveTankMessage implements Serializable {
     private String tankId;
-    private int posX;
-    private int posY;
+    private double rotation;
+    private double speed;
 
     public String getTankId() {
         return tankId;
@@ -18,23 +18,24 @@ public class MoveTankMessage implements Serializable {
         this.tankId = tankId;
     }
 
-    public int getPosX() {
-        return posX;
+    public double getRotation() {
+        return rotation;
     }
 
-    public void setPosX(int posX) {
-        this.posX = posX;
+    public void setRotation(double rotation) {
+        this.rotation = rotation;
     }
 
-    public int getPosY() {
-        return posY;
+    public double getSpeed() {
+        return speed;
     }
 
-    public void setPosY(int posY) {
-        this.posY = posY;
+    public void setSpeed(double speed) {
+        this.speed = speed;
     }
 
     public String toString() {
-        return "{tankId: " + tankId + ", posX: " + posX + ", posY: " + posY + "}";
+        return "{tankId: " + tankId + ", speed: " + speed + "rotation: " + rotation + "}";
     }
+
 }

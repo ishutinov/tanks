@@ -21,9 +21,9 @@ public class WebSocketController {
     private GameManager gameManager;
 
     @MessageMapping("/tank/move")
-    public void handleTank(MoveTankMessage moveTankMessage) {
+    public void handleTankMove(MoveTankMessage moveTankMessage) {
         logger.info("Incoming tank message:\n {}", moveTankMessage);
-        gameManager.moveTank(moveTankMessage.getTankId(), moveTankMessage.getPosX(), moveTankMessage.getPosY());
+        gameManager.moveTank(moveTankMessage.getTankId(), moveTankMessage.getSpeed(), moveTankMessage.getRotation());
     }
 
     @Scheduled(fixedRate = (1000 / 30))

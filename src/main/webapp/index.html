@@ -17,7 +17,6 @@
 </style>
 
 <body onload="disconnect()">
-
 <div>
     <div>
         <button id="connect" onclick="connect();">Connect</button>
@@ -30,7 +29,7 @@
 </div>
 
 
-<canvas id="canvas" width="1024" height="768"></canvas>
+<canvas id="canvas" width="640" height="480"></canvas>
 
 <div id="gameLog"></div>
 
@@ -40,6 +39,7 @@
     var ctx = null;
     var world = {};
     var tankId = null;
+    var tankImg = null;
 
     function setConnected(connected) {
         document.getElementById('connect').disabled = connected;
@@ -81,8 +81,12 @@
         });
     }
 
-    function moveTank(tankId, posX, posY) {
-        stompClient.send("/tank/move", {priority: 0}, JSON.stringify({tankId: tankId, posX: posX, posY: posY}));
+    function moveTank(tankId, speed, rotation) {
+        stompClient.send("/tank/move", {priority: 0}, JSON.stringify({
+            tankId: tankId,
+            speed: speed,
+            rotation: rotation
+        }));
     }
 
     function createContext(world) {
@@ -90,7 +94,6 @@
                 ctx = canvas.getContext("2d"),
                 width = world.map.width,
                 height = world.map.height,
-                keys = [],
                 friction = 0.8,
                 gravity = 0.2;
         canvas.width = width;
@@ -98,13 +101,28 @@
         return ctx;
     }
 
+    var TO_RADIANS = Math.PI / 180;
+    function drawRotatedImage(ctx, image, x, y, angle) {
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate(angle * TO_RADIANS);
+        ctx.drawImage(image, -(image.width / 2), -(image.height / 2));
+        ctx.restore();
+    }
+
     function draw(ctx, world) {
-        var drawTank = function (ball) {
-            ctx.beginPath();
-            ctx.arc(ball.posX, ball.posY, 10, 0, Math.PI * 2);
-            ctx.fillStyle = "#0095DD";
-            ctx.fill();
-            ctx.closePath();
+        var createTank = function (tank) {
+            tankImg = new Image();
+            tankImg.onload = function () {
+                ctx.drawImage(tankImg, tank.posX / 2, tank.posY / 2, 36, 87);
+            };
+            tankImg.src = 'img/tank.png';
+        };
+        var drawTank = function (tank) {
+            if (tankImg === null) {
+                createTank(tank);
+            }
+            drawRotatedImage(ctx, tankImg, tank.posX, tank.posY, tank.rotation);
         };
         ctx.clearRect(0, 0, world.map.width, world.map.width);
         for (var key in world.tanks) {
@@ -114,29 +132,41 @@
         }
     }
 
-    function moveTankRight() {
+    function rotateTankLeft() {
         var tank = world.tanks[tankId];
-        tank.posX += 2;
-        moveTank(tankId, tank.posX, tank.posY);
+        tank.rotation -= 1;
+        moveTank(tankId, 0, tank.rotation);
     }
 
-    function moveTankLeft() {
+    function rotateTankRight() {
         var tank = world.tanks[tankId];
-        tank.posX -= 2;
-        moveTank(tankId, tank.posX, tank.posY);
+        tank.rotation += 1;
+        moveTank(tankId, 0, tank.rotation);
+    }
+
+    function moveTankForward() {
+        var tank = world.tanks[tankId];
+        tank.speed = 1;
+        moveTank(tankId, tank.speed, tank.rotation);
+    }
+
+    function moveTankBackwards() {
+        var tank = world.tanks[tankId];
+        tank.speed = -1;
+        moveTank(tankId, tank.speed, tank.rotation);
     }
 
     $(document).ready(function () {
         $(document).bind('keydown', function (e) {
             key = e.keyCode;
             if (key == 37) {
-                moveTankLeft();
+                rotateTankLeft();
             } else if (key == 38) {
-//                moveTankLeft();
+                moveTankForward();
             } else if (key == 39) {
-                moveTankRight();
+                rotateTankRight();
             } else if (key == 40) {
-//                moveTankDown();
+                moveTankBackwards();
             }
         });
     });
