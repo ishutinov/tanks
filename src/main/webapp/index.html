@@ -120,6 +120,14 @@
         ctx.restore();
     }
 
+    function drawWalls(world) {
+        for (var i = 0; i < world.map.walls.length; i++) {
+            var wall = world.map.walls[i];
+            ctx.rect(wall.posX, wall.posY, wall.width, wall.height);
+            ctx.stroke();
+        }
+    }
+
     function drawTanks(world) {
         var createTank = function (tank) {
             tankImg = new Image();
@@ -140,6 +148,7 @@
             }
         }
     }
+
     function drawBullets(world) {
         for (var key in world.bullets) {
             if (world.bullets.hasOwnProperty(key)) {
@@ -155,6 +164,7 @@
 
     function draw(ctx, world) {
         ctx.clearRect(0, 0, world.map.width, world.map.width);
+        drawWalls(world);
         drawTanks(world);
         drawBullets(world);
         drawMessages(world);

@@ -9,9 +9,9 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Controller;
 import pt.pmendes.tanks.manager.GameManager;
+import pt.pmendes.tanks.model.GameMessage;
 import pt.pmendes.tanks.ws.message.FireBulletMessage;
 import pt.pmendes.tanks.ws.message.MoveTankMessage;
-import pt.pmendes.tanks.model.GameMessage;
 
 /**
  * Created by pmendes.

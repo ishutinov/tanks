@@ -28,8 +28,8 @@ public class TanksResource {
     }
 
     @GET
-    @Produces("application/json")
     @Path("/{id}")
+    @Produces("application/json")
     public Response getTank(@PathParam("id") String id) {
         Tank tank = gameManager.getTank(id);
 
@@ -40,8 +40,8 @@ public class TanksResource {
 
 
     @POST
-    @Produces("application/json")
     @Path("/{id}")
+    @Produces("application/json")
     public Response createTank(@PathParam("id") String id) {
         Tank tank = gameManager.addTank(id);
 
