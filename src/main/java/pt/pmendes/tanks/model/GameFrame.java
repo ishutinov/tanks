@@ -6,6 +6,9 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Created by pmendes.
+ */
 public class GameFrame {
 
     private WorldMap map;

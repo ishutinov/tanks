@@ -2,28 +2,30 @@ package pt.pmendes.tanks.manager;
 
 import org.springframework.stereotype.Component;
 import pt.pmendes.tanks.model.*;
+import pt.pmendes.tanks.util.Properties;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
+/**
+ * Created by pmendes.
+ */
 @Component
 public class GameManager {
-    public final static int CANVAS_WIDTH = 640;
-    public final static int CANVAS_HEIGHT = 480;
 
     private GameFrame gameFrame;
 
     public GameManager() {
-        this.gameFrame = new GameFrame(new WorldMap(CANVAS_WIDTH, CANVAS_HEIGHT));
+        this.gameFrame = new GameFrame(new WorldMap(Properties.CANVAS_WIDTH, Properties.CANVAS_HEIGHT));
     }
 
     public synchronized Tank moveTank(String tankId, double speed, double rotation) {
         Tank tank = null;
         if (gameFrame.getTanks().containsKey(tankId)) {
             tank = gameFrame.getTanks().get(tankId);
-            if (canMove(tankId, tank.calculateNewX(speed), tank.calculateNewY(speed))) {
+            if (canMove(tankId, tank.calculateNewPosition(speed))) {
                 tank.setSpeed(speed);
                 tank.setRotation(rotation);
                 tank.move();
@@ -34,28 +36,25 @@ public class GameManager {
 
     public synchronized Tank addTank(String tankId) {
         if (!gameFrame.getTanks().containsKey(tankId)) {
-            int x = ThreadLocalRandom.current().nextInt(Tank.TANK_WIDTH, CANVAS_WIDTH - Tank.TANK_WIDTH);
-            int y = ThreadLocalRandom.current().nextInt(Tank.TANK_WIDTH, CANVAS_HEIGHT - Tank.TANK_WIDTH);
+            int x = ThreadLocalRandom.current().nextInt(Tank.TANK_WIDTH, Properties.CANVAS_WIDTH - Tank.TANK_WIDTH);
+            int y = ThreadLocalRandom.current().nextInt(Tank.TANK_WIDTH, Properties.CANVAS_HEIGHT - Tank.TANK_WIDTH);
             gameFrame.getTanks().put(tankId, new Tank(tankId, x, y));
         }
         return gameFrame.getTanks().get(tankId);
     }
 
-    private boolean canMove(String tankId, double toX, double toY) {
-        if (toX <= Tank.TANK_WIDTH || toX >= CANVAS_WIDTH) {
-            return false;
-        }
-        if (toY <= Tank.TANK_WIDTH || toY >= CANVAS_HEIGHT) {
+    private boolean canMove(String tankId, Tuple<Double> toPosition) {
+        if (getTank(tankId).willCollideWithBoundries(toPosition.getX(), toPosition.getY())) {
             return false;
         }
         for (Tank tank : getTanks()) {
             if (tank.getId().equals(tankId)) {
                 continue;
             }
-            if ((Math.abs(tank.getPosX() - toX) <= Tank.TANK_WIDTH ||
-                    Math.abs(tank.getPosX() - toX) <= Tank.TANK_HEIGHT)
-                    && (Math.abs(tank.getPosY() - toY) <= Tank.TANK_WIDTH ||
-                    Math.abs(tank.getPosY() - toY) <= Tank.TANK_HEIGHT)) {
+            if ((Math.abs(tank.getPosX() - toPosition.getX()) <= Tank.TANK_WIDTH ||
+                    Math.abs(tank.getPosX() - toPosition.getX()) <= Tank.TANK_HEIGHT)
+                    && (Math.abs(tank.getPosY() - toPosition.getY()) <= Tank.TANK_WIDTH ||
+                    Math.abs(tank.getPosY() - toPosition.getY()) <= Tank.TANK_HEIGHT)) {
                 return false;
             }
         }
@@ -64,8 +63,9 @@ public class GameManager {
 
     public void fireBullet(String tankId) {
         Tank tank = getTank(tankId);
-        if (tank != null) {
-            Bullet newBullet = new Bullet(UUID.randomUUID().toString(), tank.getId(), tank.getPosX(), tank.getPosY(), tank.getRotation());
+        if (tank != null && tank.canFireBullet()) {
+            Bullet newBullet = new Bullet(UUID.randomUUID().toString(), tank.getId(), tank.getBulletPositionX(), tank.getBulletPositionY(), tank.getRotation());
+            tank.increaseBulletCount();
             getGameFrame().getBullets().put(newBullet.getId(), newBullet);
         }
     }
@@ -85,6 +85,11 @@ public class GameManager {
             if (!tank.hasFiredBullet(bullet) && tank.isCollidingWith(bullet)) {
                 gameFrame.removeTank(tank.getId());
                 gameFrame.removeBullet(bullet.getId());
+                tank.decreaseBulletCount();
+                GameMessage message = new GameMessage();
+                message.setPlayerId(tank.getId());
+                message.setMessage(tank.getId() + " was killed by " + bullet.getTankId());
+                gameFrame.addGameMessage(message);
             }
         }
     }
@@ -92,6 +97,7 @@ public class GameManager {
     private void removeOutOfBoundsBullets(Bullet bullet) {
         if (bullet.isOutOfBounds()) {
             gameFrame.removeBullet(bullet.getId());
+            getTank(bullet.getTankId()).decreaseBulletCount();
         }
     }
 

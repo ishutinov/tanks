@@ -1,5 +1,8 @@
 package pt.pmendes.tanks.model;
 
+/**
+ * Created by pmendes.
+ */
 public class WorldMap {
     private int width;
     private int height;

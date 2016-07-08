@@ -4,10 +4,10 @@ package pt.pmendes.tanks.model;
  * Created by pmendes.
  */
 public class Bullet extends BaseModel {
-
     private static final double BULLET_SPEED = 5;
+    private static final int BULLET_RADIUS = 2;
+
     private final String tankId;
-    public static final int BULLET_RADIUS = 2;
 
     public Bullet(String id, String tankId, double posX, double posY, double rotation) {
         super(id, posX, posY, rotation);

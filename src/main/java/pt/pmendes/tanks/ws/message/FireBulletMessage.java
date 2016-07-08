@@ -1,4 +1,4 @@
-package pt.pmendes.tanks.message;
+package pt.pmendes.tanks.ws.message;
 
 import java.io.Serializable;
 

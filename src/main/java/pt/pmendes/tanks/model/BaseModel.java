@@ -1,6 +1,6 @@
 package pt.pmendes.tanks.model;
 
-import pt.pmendes.tanks.manager.GameManager;
+import pt.pmendes.tanks.util.Properties;
 
 /**
  * Created by pmendes.
@@ -65,6 +65,6 @@ public abstract class BaseModel {
     }
 
     public boolean isOutOfBounds() {
-        return getPosX() < 0 || getPosY() < 0 || getPosX() >= GameManager.CANVAS_WIDTH || getPosY() >= GameManager.CANVAS_HEIGHT;
+        return getPosX() < 0 || getPosY() < 0 || getPosX() >= Properties.CANVAS_WIDTH || getPosY() >= Properties.CANVAS_HEIGHT;
     }
 }
