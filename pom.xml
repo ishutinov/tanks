@@ -15,6 +15,7 @@
         <jackson-core.version>2.7.3</jackson-core.version>
         <junit.version>4.12</junit.version>
         <jersey.version>1.8</jersey.version>
+        <jetty-plugin.version>9.3.10.v20160621</jetty-plugin.version>
     </properties>
 
     <dependencies>
@@ -105,7 +106,6 @@
         </dependency>
 
         <!-- Jackson stuff used for serialization -->
-
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-core</artifactId>
@@ -118,9 +118,32 @@
             <version>${jackson-core.version}</version>
         </dependency>
 
+        <!-- Jetty stuff -->
+        <dependency>
+            <groupId>org.eclipse.jetty.websocket</groupId>
+            <artifactId>websocket-client</artifactId>
+            <version>${jetty-plugin.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.jetty.websocket</groupId>
+            <artifactId>websocket-server</artifactId>
+            <version>${jetty-plugin.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.jetty</groupId>
+            <artifactId>jetty-client</artifactId>
+            <version>${jetty-plugin.version}</version>
+        </dependency>
     </dependencies>
 
     <build>
         <finalName>tanks</finalName>
+        <plugins>
+            <plugin>
+                <groupId>org.eclipse.jetty</groupId>
+                <artifactId>jetty-maven-plugin</artifactId>
+                <version>${jetty-plugin.version}</version>
+            </plugin>
+        </plugins>
     </build>
 </project>

@@ -125,6 +125,7 @@
             var wall = world.map.walls[i];
             ctx.rect(wall.posX, wall.posY, wall.width, wall.height);
             ctx.stroke();
+//            ctx.fill();
         }
     }
 
@@ -164,9 +165,9 @@
 
     function draw(ctx, world) {
         ctx.clearRect(0, 0, world.map.width, world.map.width);
+        drawBullets(world);
         drawWalls(world);
         drawTanks(world);
-        drawBullets(world);
         drawMessages(world);
     }
 
