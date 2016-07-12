@@ -6,6 +6,7 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
+import java.util.Collection;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
@@ -29,8 +30,8 @@ public class Tank extends BaseModel {
     private double speed;
     private int bulletCount = 0;
 
-    public Tank(String id, int posX, int posY) {
-        super(id, posX, posY);
+    public Tank(String id, Tuple<Double> startPosition) {
+        super(id, startPosition.getX(), startPosition.getY());
         setRotation(ThreadLocalRandom.current().nextInt(0, 359));
     }
 
@@ -46,12 +47,44 @@ public class Tank extends BaseModel {
 
     private Double calculateNewX(double speed) {
         double radians = Math.toRadians(getRotation() - 90);
-        return getPosX() + speed * Math.cos(radians);
+        if (speed > 0) {
+            return getPosX() + (speed + TANK_HEIGHT / 2) * Math.cos(radians);
+        } else {
+            return getPosX() + (speed - TANK_HEIGHT / 2) * Math.cos(radians);
+        }
     }
 
     private Double calculateNewY(double speed) {
         double radians = Math.toRadians(getRotation() - 90);
-        return getPosY() + speed * Math.sin(radians);
+        if (speed > 0) {
+            return getPosY() + (speed + TANK_HEIGHT / 2) * Math.sin(radians);
+        } else {
+            return getPosY() + (speed - TANK_HEIGHT / 2) * Math.sin(radians);
+        }
+    }
+
+    public boolean canMove(Tuple<Double> toPosition, Collection<Tank> tanks, Collection<Wall> walls) {
+        if (willCollideWithBoundries(toPosition.getX(), toPosition.getY())) {
+            return false;
+        }
+        for (Tank tank : tanks) {
+            // check to see if this tank is colliding with the other tanks
+            if (tank.getId().equals(getId())) {
+                continue;
+            }
+            if (toPosition.getX() >= (tank.getPosX() - tank.getWidth()) && toPosition.getX() <= (tank.getPosX() + tank.getWidth()) &&
+                    toPosition.getY() >= (tank.getPosY() - tank.getHeight()) && toPosition.getY() <= (tank.getPosY() + tank.getHeight())) {
+                return false;
+            }
+        }
+        for (Wall wall : walls) {
+            // check to see if is colliding with inner walls
+            if (toPosition.getX() >= wall.getPosX() && toPosition.getX() <= (wall.getPosX() + wall.getWidth()) &&
+                    toPosition.getY() >= wall.getPosY() && toPosition.getY() <= (wall.getPosY() + wall.getHeight())) {
+                return false;
+            }
+        }
+        return true;
     }
 
     public void move() {
@@ -130,10 +163,10 @@ public class Tank extends BaseModel {
 
 
     public boolean willCollideWithBoundries(double toX, double toY) {
-        if (toX <= (TANK_HEIGHT / 2) || toX >= (Properties.CANVAS_WIDTH - (TANK_HEIGHT / 2))) {
+        if (toX <= TANK_HEIGHT || toX >= Properties.CANVAS_WIDTH) {
             return true;
         }
-        if (toY <= (TANK_HEIGHT / 2) || toY >= (Properties.CANVAS_HEIGHT - (TANK_HEIGHT / 2))) {
+        if (toY <= TANK_HEIGHT || toY >= Properties.CANVAS_HEIGHT) {
             return true;
         }
         return false;

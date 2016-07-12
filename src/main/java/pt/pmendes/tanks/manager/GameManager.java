@@ -25,7 +25,7 @@ public class GameManager {
         Tank tank = null;
         if (gameFrame.getTanks().containsKey(tankId)) {
             tank = gameFrame.getTanks().get(tankId);
-            if (canMove(tankId, tank.calculateNewPosition(speed))) {
+            if (tank.canMove(tank.calculateNewPosition(speed), getTanks(), getWalls())) {
                 tank.setSpeed(speed);
                 tank.setRotation(rotation);
                 tank.move();
@@ -36,30 +36,26 @@ public class GameManager {
 
     public synchronized Tank addTank(String tankId) {
         if (!gameFrame.getTanks().containsKey(tankId)) {
-            int x = ThreadLocalRandom.current().nextInt(Tank.TANK_WIDTH, Properties.CANVAS_WIDTH - Tank.TANK_WIDTH);
-            int y = ThreadLocalRandom.current().nextInt(Tank.TANK_WIDTH, Properties.CANVAS_HEIGHT - Tank.TANK_WIDTH);
-            gameFrame.getTanks().put(tankId, new Tank(tankId, x, y));
+            Tuple<Double> position;
+            while (true) {
+                boolean isValidStartingPoint = false;
+                Double x = ThreadLocalRandom.current().nextDouble(Tank.TANK_WIDTH, Properties.CANVAS_WIDTH - Tank.TANK_WIDTH);
+                Double y = ThreadLocalRandom.current().nextDouble(Tank.TANK_WIDTH, Properties.CANVAS_HEIGHT - Tank.TANK_WIDTH);
+                position = new Tuple<Double>(x, y);
+                for (Wall wall : getWalls()) {
+                    if (!wall.isCollidingWith(position)) {
+                        isValidStartingPoint = true;
+                    }
+                }
+                if (isValidStartingPoint) {
+                    break;
+                }
+            }
+            gameFrame.getTanks().put(tankId, new Tank(tankId, position));
         }
         return gameFrame.getTanks().get(tankId);
     }
 
-    private boolean canMove(String tankId, Tuple<Double> toPosition) {
-        if (getTank(tankId).willCollideWithBoundries(toPosition.getX(), toPosition.getY())) {
-            return false;
-        }
-        for (Tank tank : getTanks()) {
-            if (tank.getId().equals(tankId)) {
-                continue;
-            }
-            if ((Math.abs(tank.getPosX() - toPosition.getX()) <= Tank.TANK_WIDTH ||
-                    Math.abs(tank.getPosX() - toPosition.getX()) <= Tank.TANK_HEIGHT)
-                    && (Math.abs(tank.getPosY() - toPosition.getY()) <= Tank.TANK_WIDTH ||
-                    Math.abs(tank.getPosY() - toPosition.getY()) <= Tank.TANK_HEIGHT)) {
-                return false;
-            }
-        }
-        return true;
-    }
 
     public void fireBullet(String tankId) {
         Tank tank = getTank(tankId);
@@ -122,6 +118,10 @@ public class GameManager {
 
     private Collection<Bullet> getBullets() {
         return getGameFrame().getBullets().values();
+    }
+
+    private Collection<Wall> getWalls() {
+        return getGameFrame().getMap().getWalls();
     }
 
     public GameFrame getGameFrame() {

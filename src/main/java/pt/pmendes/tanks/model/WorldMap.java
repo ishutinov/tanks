@@ -20,7 +20,7 @@ public class WorldMap {
         this.height = height;
         this.walls = new ArrayList<Wall>();
 
-        for (int i = 0; i < Properties.NUMBER_OF_WALLS; i++) {
+        for (int i = 0; i < Properties.NUMBER_OF_INNER_WALLS; i++) {
             this.walls.add(createRandomWall());
         }
     }
@@ -48,8 +48,8 @@ public class WorldMap {
     private Wall createRandomWall() {
         double wallPosX = ThreadLocalRandom.current().nextInt(10, width - 10);
         double wallPosY = ThreadLocalRandom.current().nextInt(10, height - 10);
-        double width = 20; //ThreadLocalRandom.current().nextInt(10, 25);
-        double height = ThreadLocalRandom.current().nextInt(40, 200);
+        double width = ThreadLocalRandom.current().nextInt(20, 200);
+        double height = ThreadLocalRandom.current().nextInt(20, 200);
         return new Wall(UUID.randomUUID().toString(), wallPosX, wallPosY, width, height);
     }
 }
