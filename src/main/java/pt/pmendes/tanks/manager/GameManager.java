@@ -73,10 +73,21 @@ public class GameManager {
     public void updateGameFrame() {
         Collection<Bullet> bullets = new ArrayList<Bullet>(getBullets());
         for (Bullet bullet : bullets) {
-            bullet.move();
-            removeOutOfBoundsBullets(bullet);
+            updateBullets(bullet);
             updateTanks(bullet);
         }
+    }
+
+    private void updateBullets(Bullet bullet) {
+        bullet.move();
+        removeOutOfBoundsBullets(bullet);
+        for (Wall wall : gameFrame.getMap().getWalls()) {
+            if (wall.isCollidingWith(bullet)) {
+                gameFrame.removeBullet(bullet.getId());
+                getTank(bullet.getTankId()).decreaseBulletCount();
+            }
+        }
+
     }
 
     private void updateTanks(Bullet bullet) {

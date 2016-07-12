@@ -29,7 +29,7 @@
 </div>
 
 
-<canvas id="canvas" width="640" height="480"></canvas>
+<canvas id="canvas" width="1280" height="720"></canvas>
 
 <div id="gameLog"></div>
 
@@ -60,7 +60,7 @@
                     ctx = createContext(world);
                 }
                 draw(ctx, world);
-                console.log("World: " + message.body);
+//                    console.log("World: " + message.body);
             });
         });
     }
@@ -123,9 +123,9 @@
     function drawWalls(world) {
         for (var i = 0; i < world.map.walls.length; i++) {
             var wall = world.map.walls[i];
-            ctx.rect(wall.posX, wall.posY, wall.width, wall.height);
-            ctx.stroke();
-//            ctx.fill();
+            ctx.beginPath();
+            ctx.fillStyle = "blue";
+            ctx.fillRect(wall.posX, wall.posY, wall.width, wall.height);
         }
     }
 
@@ -238,4 +238,4 @@
 </script>
 
 </body>
-</html>
+</htm

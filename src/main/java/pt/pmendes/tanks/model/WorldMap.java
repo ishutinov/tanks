@@ -1,5 +1,7 @@
 package pt.pmendes.tanks.model;
 
+import pt.pmendes.tanks.util.Properties;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.UUID;
@@ -18,9 +20,9 @@ public class WorldMap {
         this.height = height;
         this.walls = new ArrayList<Wall>();
 
-        this.walls.add(createRandomWall());
-        this.walls.add(createRandomWall());
-        this.walls.add(createRandomWall());
+        for (int i = 0; i < Properties.NUMBER_OF_WALLS; i++) {
+            this.walls.add(createRandomWall());
+        }
     }
 
     public int getWidth() {

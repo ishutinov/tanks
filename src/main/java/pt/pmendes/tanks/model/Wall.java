@@ -14,6 +14,12 @@ public class Wall extends BaseModel {
         this.height = height;
     }
 
+
+    public boolean isCollidingWith(BaseModel model) {
+        return model.getPosX() >= getPosX() && model.getPosX() <= (getPosX() + width) &&
+                model.getPosY() >= getPosY() && model.getPosY() <= (getPosY() + height);
+    }
+
     public double getWidth() {
         return width;
     }
