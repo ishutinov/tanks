@@ -27,13 +27,11 @@ public class WebSocketController {
 
     @MessageMapping("/tank/move")
     public void handleTankMove(MoveTankMessage moveTankMessage) {
-        logger.info("Incoming tank message:\n {}", moveTankMessage);
         gameManager.moveTank(moveTankMessage.getTankId(), moveTankMessage.getSpeed(), moveTankMessage.getRotation());
     }
 
     @MessageMapping("/tank/fire")
     public void handleFireBullet(FireBulletMessage fireBulletMessage) {
-        logger.info("Incoming fire bullet message:\n {}", fireBulletMessage);
         gameManager.fireBullet(fireBulletMessage.getTankId());
     }
 

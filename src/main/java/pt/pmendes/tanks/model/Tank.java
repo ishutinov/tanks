@@ -173,7 +173,7 @@ public class Tank extends BaseModel {
     }
 
     /**
-     * returns true iff the line from (a,b)->(c,d) intersects with (p,q)->(r,s)
+     * Returns true if the line from (a,b)->(c,d) intersects with (p,q)->(r,s)
      */
     private boolean intersects(double a, double b, double c, double d, double p, double q, double r, double s) {
         double det, gamma, lambda;
@@ -202,6 +202,7 @@ public class Tank extends BaseModel {
         }
         return true;
     }
+
 
     public Map<String, Boolean> getIsVisibility() {
         return isVisibleToMap;

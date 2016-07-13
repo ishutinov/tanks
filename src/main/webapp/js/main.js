@@ -40,7 +40,6 @@ function disconnect() {
         stompClient.disconnect();
     }
     setConnected(false);
-    console.log("Disconnected");
 }
 
 function joinGame() {
@@ -111,7 +110,7 @@ function drawTanks(world) {
     var createTank = function (tank) {
         tankImg = new Image();
         tankImg.onload = function () {
-            ctx.drawImage(tankImg, tank.posX / 2, tank.posY / 2, tank.width, tank.height);
+            ctx.drawImage(tankImg, -50, -50, tank.width, tank.height);
         };
         tankImg.src = 'img/tank.png';
     };
@@ -209,7 +208,6 @@ $(document).ready(function () {
     });
     $(document).bind('keyup', function (e) {
         key = e.keyCode;
-        console.log("keyup");
         if (key == 38 || key == 40) {
             stopTank();
         }

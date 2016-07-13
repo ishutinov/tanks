@@ -25,6 +25,11 @@ public class Wall extends BaseModel {
                 something.getY() >= getPosY() && something.getY() <= (getPosY() + height);
     }
 
+    public boolean contains(Tuple<Double> pos) {
+        return pos.getX() >= getPosX() && pos.getX() <= getPosX() + getWidth() &&
+                pos.getY() >= getPosY() && pos.getY() <= getPosY() + getHeight();
+    }
+
     public double getWidth() {
         return width;
     }

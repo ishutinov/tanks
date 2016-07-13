@@ -6,6 +6,7 @@ import pt.pmendes.tanks.util.Properties;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -46,14 +47,14 @@ public class GameManager {
         }
         Tuple<Double> position;
         while (true) {
-            boolean isValidStartingPoint = false;
+            List<Boolean> isValid = new ArrayList<Boolean>();
             Double x = ThreadLocalRandom.current().nextDouble(Tank.TANK_WIDTH, Properties.CANVAS_WIDTH - Tank.TANK_WIDTH);
             Double y = ThreadLocalRandom.current().nextDouble(Tank.TANK_WIDTH, Properties.CANVAS_HEIGHT - Tank.TANK_WIDTH);
             position = new Tuple<Double>(x, y);
             for (Wall wall : getWalls()) {
-                isValidStartingPoint = !wall.isCollidingWith(position);
+                isValid.add(!wall.contains(position));
             }
-            if (isValidStartingPoint) {
+            if (!isValid.contains(Boolean.FALSE)) {
                 break;
             }
         }
