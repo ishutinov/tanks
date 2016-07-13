@@ -2,43 +2,39 @@ package pt.pmendes.tanks.model;
 
 import pt.pmendes.tanks.util.Properties;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * Created by pmendes.
  */
-@XmlRootElement
-@XmlAccessorType(XmlAccessType.FIELD)
 public class Tank extends BaseModel {
     public static final int TANK_WIDTH = 22;
     public static final int TANK_HEIGHT = 52;
-    private static final int TANK_MAX_BACKWARDS_SPEED = -3;
-    private static final int TANK_MAX_FORWARD_SPEED = 8;
+    private static final int TANK_MAX_BACKWARDS_SPEED = -4;
+    private static final int TANK_MAX_FORWARD_SPEED = 15;
 
-    @XmlElement
     private int width = TANK_WIDTH;
-    @XmlElement
     private int height = TANK_HEIGHT;
-    @XmlElement
     private String color;
-    @XmlElement
     private double speed;
     private int bulletCount = 0;
+
+    private Map<String, Boolean> isVisibleToMap = new HashMap<String, Boolean>();
 
     public Tank(String id, Tuple<Double> startPosition) {
         super(id, startPosition.getX(), startPosition.getY());
         setRotation(ThreadLocalRandom.current().nextInt(0, 359));
+        isVisibleToMap.put(getId(), true);
     }
 
     public Tank(String id, int posX, int posY, String color) {
         super(id, posX, posY);
         this.color = color;
         setRotation(ThreadLocalRandom.current().nextInt(0, 359));
+        isVisibleToMap.put(getId(), true);
     }
 
     public Tuple<Double> calculateNewPosition(double speed) {
@@ -47,20 +43,24 @@ public class Tank extends BaseModel {
 
     private Double calculateNewX(double speed) {
         double radians = Math.toRadians(getRotation() - 90);
+        double delta;
         if (speed > 0) {
-            return getPosX() + (speed + TANK_HEIGHT / 2) * Math.cos(radians);
+            delta = speed + TANK_HEIGHT / 2;
         } else {
-            return getPosX() + (speed - TANK_HEIGHT / 2) * Math.cos(radians);
+            delta = speed - TANK_HEIGHT / 2;
         }
+        return getPosX() + delta * Math.cos(radians);
     }
 
     private Double calculateNewY(double speed) {
         double radians = Math.toRadians(getRotation() - 90);
+        double delta;
         if (speed > 0) {
-            return getPosY() + (speed + TANK_HEIGHT / 2) * Math.sin(radians);
+            delta = speed + TANK_HEIGHT / 2;
         } else {
-            return getPosY() + (speed - TANK_HEIGHT / 2) * Math.sin(radians);
+            delta = speed - TANK_HEIGHT / 2;
         }
+        return getPosY() + delta * Math.sin(radians);
     }
 
     public boolean canMove(Tuple<Double> toPosition, Collection<Tank> tanks, Collection<Wall> walls) {
@@ -157,18 +157,62 @@ public class Tank extends BaseModel {
 
     public void decreaseBulletCount() {
         if (bulletCount >= 0) {
-            this.bulletCount -= 1;
+            bulletCount -= 1;
         }
     }
 
 
     public boolean willCollideWithBoundries(double toX, double toY) {
-        if (toX <= TANK_HEIGHT || toX >= Properties.CANVAS_WIDTH) {
+        if (toX <= 0 || toX >= Properties.CANVAS_WIDTH) {
             return true;
         }
-        if (toY <= TANK_HEIGHT || toY >= Properties.CANVAS_HEIGHT) {
+        if (toY <= 0 || toY >= Properties.CANVAS_HEIGHT) {
             return true;
         }
         return false;
     }
+
+    /**
+     * returns true iff the line from (a,b)->(c,d) intersects with (p,q)->(r,s)
+     */
+    private boolean intersects(double a, double b, double c, double d, double p, double q, double r, double s) {
+        double det, gamma, lambda;
+        det = (c - a) * (s - q) - (r - p) * (d - b);
+        if (det == 0) {
+            return false;
+        } else {
+            lambda = ((s - q) * (r - a) + (p - r) * (s - b)) / det;
+            gamma = ((b - d) * (r - a) + (c - a) * (s - b)) / det;
+            return (0 < lambda && lambda < 1) && (0 < gamma && gamma < 1);
+        }
+    }
+
+    private boolean isVisibleTo(Tank tank, Collection<Wall> walls) {
+        if (getId().equals(tank.getId())) {
+            return true;
+        }
+        for (Wall wall : walls) {
+            // intersects any of the wall lines
+            if (intersects(getPosX(), getPosY(), tank.getPosX(), tank.getPosY(), wall.getPosX(), wall.getPosY(), wall.getPosX(), wall.getPosY() + wall.getHeight()) ||
+                    intersects(getPosX(), getPosY(), tank.getPosX(), tank.getPosY(), wall.getPosX(), wall.getPosY(), wall.getPosX() + wall.getWidth(), wall.getPosY()) ||
+                    intersects(getPosX(), getPosY(), tank.getPosX(), tank.getPosY(), wall.getPosX() + wall.getWidth(), wall.getPosY(), wall.getPosX() + wall.getWidth(), wall.getPosY() + wall.getHeight()) ||
+                    intersects(getPosX(), getPosY(), tank.getPosX(), tank.getPosY(), wall.getPosX(), wall.getPosY() + wall.getHeight(), wall.getPosX() + wall.getWidth(), wall.getPosY() + wall.getHeight())) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public Map<String, Boolean> getIsVisibility() {
+        return isVisibleToMap;
+    }
+
+    public void setVisibility(Collection<Tank> tanks, Collection<Wall> walls) {
+        for (Tank tank : tanks) {
+            boolean isVisible = isVisibleTo(tank, walls);
+            isVisibleToMap.put(tank.getId(), isVisible);
+            tank.getIsVisibility().put(getId(), isVisible);
+        }
+    }
+
 }

@@ -21,6 +21,11 @@ public class GameManager {
         this.gameFrame = new GameFrame(new WorldMap(Properties.CANVAS_WIDTH, Properties.CANVAS_HEIGHT));
     }
 
+    public GameManager reset() {
+        this.gameFrame = new GameFrame(new WorldMap(Properties.CANVAS_WIDTH, Properties.CANVAS_HEIGHT));
+        return this;
+    }
+
     public synchronized Tank moveTank(String tankId, double speed, double rotation) {
         Tank tank = null;
         if (gameFrame.getTanks().containsKey(tankId)) {
@@ -29,30 +34,31 @@ public class GameManager {
                 tank.setSpeed(speed);
                 tank.setRotation(rotation);
                 tank.move();
+                tank.setVisibility(getTanks(), getWalls());
             }
         }
         return tank;
     }
 
     public synchronized Tank addTank(String tankId) {
-        if (!gameFrame.getTanks().containsKey(tankId)) {
-            Tuple<Double> position;
-            while (true) {
-                boolean isValidStartingPoint = false;
-                Double x = ThreadLocalRandom.current().nextDouble(Tank.TANK_WIDTH, Properties.CANVAS_WIDTH - Tank.TANK_WIDTH);
-                Double y = ThreadLocalRandom.current().nextDouble(Tank.TANK_WIDTH, Properties.CANVAS_HEIGHT - Tank.TANK_WIDTH);
-                position = new Tuple<Double>(x, y);
-                for (Wall wall : getWalls()) {
-                    if (!wall.isCollidingWith(position)) {
-                        isValidStartingPoint = true;
-                    }
-                }
-                if (isValidStartingPoint) {
-                    break;
-                }
-            }
-            gameFrame.getTanks().put(tankId, new Tank(tankId, position));
+        if (gameFrame.getTanks().containsKey(tankId)) {
+            gameFrame.getTanks().remove(tankId);
         }
+        Tuple<Double> position;
+        while (true) {
+            boolean isValidStartingPoint = false;
+            Double x = ThreadLocalRandom.current().nextDouble(Tank.TANK_WIDTH, Properties.CANVAS_WIDTH - Tank.TANK_WIDTH);
+            Double y = ThreadLocalRandom.current().nextDouble(Tank.TANK_WIDTH, Properties.CANVAS_HEIGHT - Tank.TANK_WIDTH);
+            position = new Tuple<Double>(x, y);
+            for (Wall wall : getWalls()) {
+                isValidStartingPoint = !wall.isCollidingWith(position);
+            }
+            if (isValidStartingPoint) {
+                break;
+            }
+        }
+        gameFrame.getTanks().put(tankId, new Tank(tankId, position));
+
         return gameFrame.getTanks().get(tankId);
     }
 

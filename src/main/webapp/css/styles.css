@@ -1,0 +1,18 @@
+body {
+    background-color: #F3F3F3;
+}
+
+#canvas {
+    background-color: azure;
+    float: left;
+}
+
+#gameLog {
+    height: 720px;
+    overflow: scroll;
+    width: 300px;
+    background-color: white;
+    padding: 10px;
+    float: left;
+    margin-left: 5px;
+}

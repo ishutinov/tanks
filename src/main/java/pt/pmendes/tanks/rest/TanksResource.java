@@ -50,4 +50,13 @@ public class TanksResource {
                 .type(MediaType.APPLICATION_JSON).build();
     }
 
+    @POST
+    @Path("/reset")
+    @Produces("application/json")
+    public Response resetTanks() {
+        return Response.status(Response.Status.OK)
+                .entity(gameManager.reset())
+                .type(MediaType.APPLICATION_JSON).build();
+    }
+
 }
