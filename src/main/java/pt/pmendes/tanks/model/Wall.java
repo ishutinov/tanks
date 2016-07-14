@@ -20,11 +20,6 @@ public class Wall extends BaseModel {
                 model.getPosY() >= getPosY() && model.getPosY() <= (getPosY() + height);
     }
 
-    public boolean isCollidingWith(Tuple<Double> something) {
-        return something.getX() >= getPosX() && something.getX() <= (getPosX() + width) &&
-                something.getY() >= getPosY() && something.getY() <= (getPosY() + height);
-    }
-
     public boolean contains(Tuple<Double> pos) {
         return pos.getX() >= getPosX() && pos.getX() <= getPosX() + getWidth() &&
                 pos.getY() >= getPosY() && pos.getY() <= getPosY() + getHeight();

@@ -14,13 +14,14 @@ public class Tank extends BaseModel {
     public static final int TANK_WIDTH = 22;
     public static final int TANK_HEIGHT = 52;
     private static final int TANK_MAX_BACKWARDS_SPEED = -4;
-    private static final int TANK_MAX_FORWARD_SPEED = 15;
+    private static final int TANK_MAX_FORWARD_SPEED = 18;
 
     private int width = TANK_WIDTH;
     private int height = TANK_HEIGHT;
     private String color;
     private double speed;
     private int bulletCount = 0;
+    private int killCount = 0;
 
     private Map<String, Boolean> isVisibleToMap = new HashMap<String, Boolean>();
 
@@ -216,4 +217,11 @@ public class Tank extends BaseModel {
         }
     }
 
+    public int getKillCount() {
+        return killCount;
+    }
+
+    public void increaseKillCount() {
+        killCount += 1;
+    }
 }

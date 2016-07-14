@@ -148,6 +148,7 @@ function draw(ctx, world) {
     drawWalls(world);
     drawTanks(world);
     drawMessages(world);
+    drawScores(world);
 }
 
 function drawMessages(world) {
@@ -156,6 +157,16 @@ function drawMessages(world) {
         var message = world.messages[i];
         var time = new Date(message.timestamp);
         $('#gameLog').append('<p>' + time.getHours() + ':' + time.getMinutes() + ':' + time.getSeconds() + ' - ' + message.message + '</p>');
+    }
+}
+
+function drawScores(world) {
+    $('#scores').html('');
+    for (var key in world.tanks) {
+        if (world.tanks.hasOwnProperty(key)) {
+            var tank = world.tanks[key];
+            $('#scores').append(tank.id + ':' + tank.killCount + ' kills  ');
+        }
     }
 }
 

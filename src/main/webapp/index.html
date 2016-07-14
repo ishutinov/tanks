@@ -10,22 +10,23 @@
 </head>
 
 <body onload="disconnect()">
+<div>
     <div>
-        <div>
-            <button id="connect" onclick="connect();">Connect</button>
-            <button id="disconnect" disabled="disabled" onclick="disconnect();">Disconnect</button>
-            <button id="rejoin" disabled="disabled" onclick="rejoin();">Rejoin</button>
-            <button id="reset" disabled="disabled" onclick="reset();">Reset</button>
-        </div>
-        <div id="joinGame">
-            <label>What is your name?</label><input type="text" id="name" style="margin: 20px;"/>
-            <button id="sendName" onclick="joinGame();">Join</button>
-        </div>
+        <button id="connect" onclick="connect();">Connect</button>
+        <button id="disconnect" disabled="disabled" onclick="disconnect();">Disconnect</button>
+        <button id="rejoin" disabled="disabled" onclick="rejoin();">Rejoin</button>
+        <button id="reset" disabled="disabled" onclick="reset();">Reset</button>
     </div>
+    <div id="joinGame">
+        <label>What is your name?</label><input type="text" id="name" style="margin: 20px;"/>
+        <button id="sendName" onclick="joinGame();">Join</button>
+    </div>
+</div>
 
+<div id="container">
+    <div id="scores"></div>
     <canvas id="canvas" width="1280" height="720"></canvas>
-
     <div id="gameLog"></div>
-
+</div>
 </body>
 </html>
