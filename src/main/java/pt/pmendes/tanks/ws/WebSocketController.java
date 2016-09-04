@@ -40,7 +40,7 @@ public class WebSocketController {
         gameManager.addGameMessage(gameMessage);
     }
 
-    @Scheduled(fixedRate = (1000 / 30))
+    @Scheduled(fixedRate = (1000 / 60))
     public void sendMessage() throws Exception {
         ObjectMapper mapper = new ObjectMapper();
         //TODO: move this out of here

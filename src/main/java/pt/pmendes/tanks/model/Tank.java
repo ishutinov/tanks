@@ -63,8 +63,8 @@ public class Tank extends BaseModel {
         return getPosY() + delta * Math.sin(radians);
     }
 
-    public boolean canMove(Tuple<Double> toPosition, Collection<Tank> tanks, Collection<Wall> walls) {
-        if (willCollideWithBoundries(toPosition.getX(), toPosition.getY())) {
+    public boolean canMove(WorldMap map, Tuple<Double> toPosition, Collection<Tank> tanks) {
+        if (willCollideWithBoundries(toPosition.getX(), toPosition.getY(), map.getWidth(), map.getHeight())) {
             return false;
         }
         for (Tank tank : tanks) {
@@ -77,7 +77,7 @@ public class Tank extends BaseModel {
                 return false;
             }
         }
-        for (Wall wall : walls) {
+        for (Wall wall : map.getWalls()) {
             // check to see if is colliding with inner walls
             if (toPosition.getX() >= wall.getPosX() && toPosition.getX() <= (wall.getPosX() + wall.getWidth()) &&
                     toPosition.getY() >= wall.getPosY() && toPosition.getY() <= (wall.getPosY() + wall.getHeight())) {
@@ -162,11 +162,11 @@ public class Tank extends BaseModel {
     }
 
 
-    public boolean willCollideWithBoundries(double toX, double toY) {
-        if (toX <= 0 || toX >= Properties.CANVAS_WIDTH) {
+    public boolean willCollideWithBoundries(double toX, double toY, int canvasWidth, int canvasHeight) {
+        if (toX <= 0 || toX >= canvasWidth) {
             return true;
         }
-        if (toY <= 0 || toY >= Properties.CANVAS_HEIGHT) {
+        if (toY <= 0 || toY >= canvasHeight) {
             return true;
         }
         return false;

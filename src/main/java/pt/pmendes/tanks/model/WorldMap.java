@@ -15,11 +15,10 @@ public class WorldMap {
     private int height;
     private Collection<Wall> walls;
 
-    public WorldMap(int width, int height) {
-        this.width = width;
-        this.height = height;
+    public WorldMap() {
+        this.width = Properties.CANVAS_DEFAULT_WIDTH;
+        this.height = Properties.CANVAS_DEFAULT_HEIGHT;
         this.walls = new ArrayList<Wall>();
-
         for (int i = 0; i < Properties.NUMBER_OF_INNER_WALLS; i++) {
             this.walls.add(createRandomWall());
         }

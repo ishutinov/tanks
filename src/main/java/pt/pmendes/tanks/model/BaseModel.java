@@ -64,7 +64,7 @@ public abstract class BaseModel {
         return this.posX == model.getPosX() && this.posY == model.getPosX();
     }
 
-    public boolean isOutOfBounds() {
-        return getPosX() < 0 || getPosY() < 0 || getPosX() >= Properties.CANVAS_WIDTH || getPosY() >= Properties.CANVAS_HEIGHT;
+    public boolean isOutOfBounds(int canvasWidth, int canvasHeight) {
+        return getPosX() < 0 || getPosY() < 0 || getPosX() >= canvasWidth || getPosY() >= canvasHeight;
     }
 }

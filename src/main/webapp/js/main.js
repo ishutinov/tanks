@@ -9,10 +9,12 @@ function setConnected(connected) {
     document.getElementById('disconnect').disabled = !connected;
     document.getElementById('rejoin').disabled = !connected;
     document.getElementById('reset').disabled = !connected;
-    document.getElementById('joinGame').style.visibility = connected ? 'visible' : 'hidden';
+    document.getElementById('join').style.visibility = connected ? 'visible' : 'hidden';
 }
 
 function connect() {
+    // init the canvas size with the client viewport
+    $.post('/rest/map/width/' + window.innerWidth + '/height/' + window.innerHeight, {}, function (result) {});
     var socket = new SockJS('/ws/tank');
     stompClient = Stomp.over(socket);
     // turn off the debug messages
@@ -42,11 +44,11 @@ function disconnect() {
     setConnected(false);
 }
 
-function joinGame() {
+function join() {
     var name = document.getElementById('name').value;
     $.post('/rest/tanks/' + name, {}, function (result) {
         tankId = name;
-        document.getElementById('joinGame').style.visibility = 'hidden';
+        document.getElementById('join').style.visibility = 'hidden';
         sendMessage(tankId, tankId + ' has joined');
     });
 }
@@ -147,7 +149,7 @@ function draw(ctx, world) {
     drawBullets(world);
     drawWalls(world);
     drawTanks(world);
-    drawMessages(world);
+    // drawMessages(world);
 }
 
 function drawMessages(world) {
@@ -176,6 +178,7 @@ function moveTankForward() {
     if (tank.speed < 2) {
         tank.speed += 0.2;
     }
+    console.log("Tank Speed: " + tank.speed);
     moveTank(tankId, tank.speed, tank.rotation);
 }
 

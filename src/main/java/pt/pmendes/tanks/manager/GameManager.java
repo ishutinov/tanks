@@ -19,19 +19,24 @@ public class GameManager {
     private GameFrame gameFrame;
 
     public GameManager() {
-        this.gameFrame = new GameFrame(new WorldMap(Properties.CANVAS_WIDTH, Properties.CANVAS_HEIGHT));
+        this.gameFrame = new GameFrame(new WorldMap());
     }
 
     public GameManager reset() {
-        this.gameFrame = new GameFrame(new WorldMap(Properties.CANVAS_WIDTH, Properties.CANVAS_HEIGHT));
+        this.gameFrame = new GameFrame(new WorldMap());
         return this;
+    }
+
+    public void initMap(int canvasWidth, int canvasHeight) {
+        getGameFrame().getMap().setWidth(canvasWidth);
+        getGameFrame().getMap().setHeight(canvasHeight);
     }
 
     public synchronized Tank moveTank(String tankId, double speed, double rotation) {
         Tank tank = null;
         if (gameFrame.getTanks().containsKey(tankId)) {
             tank = gameFrame.getTanks().get(tankId);
-            if (tank.canMove(tank.calculateNewPosition(speed), getTanks(), getWalls())) {
+            if (tank.canMove(gameFrame.getMap(), tank.calculateNewPosition(speed), getTanks())) {
                 tank.setSpeed(speed);
                 tank.setRotation(rotation);
                 tank.move();
@@ -48,8 +53,8 @@ public class GameManager {
         Tuple<Double> position;
         while (true) {
             List<Boolean> isValid = new ArrayList<Boolean>();
-            Double x = ThreadLocalRandom.current().nextDouble(Tank.TANK_WIDTH, Properties.CANVAS_WIDTH - Tank.TANK_WIDTH);
-            Double y = ThreadLocalRandom.current().nextDouble(Tank.TANK_WIDTH, Properties.CANVAS_HEIGHT - Tank.TANK_WIDTH);
+            Double x = ThreadLocalRandom.current().nextDouble(Tank.TANK_WIDTH, getGameFrame().getMap().getWidth() - Tank.TANK_WIDTH);
+            Double y = ThreadLocalRandom.current().nextDouble(Tank.TANK_WIDTH, getGameFrame().getMap().getHeight() - Tank.TANK_WIDTH);
             position = new Tuple<Double>(x, y);
             for (Wall wall : getWalls()) {
                 isValid.add(!wall.contains(position));
@@ -109,7 +114,7 @@ public class GameManager {
     }
 
     private void removeOutOfBoundsBullets(Bullet bullet) {
-        if (bullet.isOutOfBounds()) {
+        if (bullet.isOutOfBounds(getGameFrame().getMap().getWidth(), getGameFrame().getMap().getHeight())) {
             gameFrame.removeBullet(bullet.getId());
             getTank(bullet.getTankId()).decreaseBulletCount();
         }
