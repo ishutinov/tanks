@@ -1,5 +1,6 @@
 body {
-    background-color: #F3F3F3;
+    background-image: url('/img/background.png');
+    background-repeat: repeat;
     font-family: 'DejaVu Sans', Arial, Helvetica, sans-serif;
 }
 
@@ -28,17 +29,13 @@ body {
 }
 
 #canvas {
-    background-color: azure;
     position: fixed;
     top: 0;
 }
 
-#gameLog {
-    height: 720px;
+#game-log {
     overflow: scroll;
-    width: 300px;
-    background-color: white;
-    padding: 10px;
+    min-width: 300px;
     float: left;
-    margin-left: 5px;
+    margin-left: 10px;
 }

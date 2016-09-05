@@ -14,7 +14,7 @@ public class Tank extends BaseModel {
     public static final int TANK_WIDTH = 22;
     public static final int TANK_HEIGHT = 52;
     private static final int TANK_MAX_BACKWARDS_SPEED = -4;
-    private static final int TANK_MAX_FORWARD_SPEED = 15;
+    private static final int TANK_MAX_FORWARD_SPEED = 6;
 
     private int width = TANK_WIDTH;
     private int height = TANK_HEIGHT;
@@ -136,13 +136,13 @@ public class Tank extends BaseModel {
     }
 
     public void setSpeed(double speed) {
-        if (speed < TANK_MAX_BACKWARDS_SPEED) {
+        this.speed = speed;
+        if (this.speed < TANK_MAX_BACKWARDS_SPEED) {
             this.speed = TANK_MAX_BACKWARDS_SPEED;
         }
-        if (speed > TANK_MAX_FORWARD_SPEED) {
+        if (this.speed >= TANK_MAX_FORWARD_SPEED) {
             this.speed = TANK_MAX_FORWARD_SPEED;
         }
-        this.speed = speed;
     }
 
     public boolean canFireBullet() {
@@ -166,10 +166,7 @@ public class Tank extends BaseModel {
         if (toX <= 0 || toX >= canvasWidth) {
             return true;
         }
-        if (toY <= 0 || toY >= canvasHeight) {
-            return true;
-        }
-        return false;
+        return toY <= 0 || toY >= canvasHeight;
     }
 
     /**

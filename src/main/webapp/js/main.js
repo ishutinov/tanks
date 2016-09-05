@@ -14,7 +14,8 @@ function setConnected(connected) {
 
 function connect() {
     // init the canvas size with the client viewport
-    $.post('/rest/map/width/' + window.innerWidth + '/height/' + window.innerHeight, {}, function (result) {});
+    $.post('/rest/map/width/' + window.innerWidth + '/height/' + window.innerHeight, {}, function (result) {
+    });
     var socket = new SockJS('/ws/tank');
     stompClient = Stomp.over(socket);
     // turn off the debug messages
@@ -100,10 +101,14 @@ function drawRotatedImage(ctx, image, x, y, angle) {
 }
 
 function drawWalls(world) {
+    var rocksBackground = new Image();
+    rocksBackground.src = 'img/rocks_background.jpg';
+    var pattern = ctx.createPattern(rocksBackground, 'repeat');
+
     for (var i = 0; i < world.map.walls.length; i++) {
         var wall = world.map.walls[i];
         ctx.beginPath();
-        ctx.fillStyle = "blue";
+        ctx.fillStyle = pattern;
         ctx.fillRect(wall.posX, wall.posY, wall.width, wall.height);
     }
 }
@@ -121,7 +126,9 @@ function drawTanks(world) {
             createTank(tank);
         }
         if (tank.isVisibility[tankId]) {
-            drawRotatedImage(ctx, tankImg, tank.posX, tank.posY, tank.rotation);
+            // TODO: round on the server
+            drawRotatedImage(ctx, tankImg, Math.round(tank.posX), Math.round(tank.posY), tank.rotation);
+            // drawRotatedImage(ctx, tankImg,tank.posX, tank.posY, tank.rotation);
         }
     };
     for (var key in world.tanks) {
@@ -137,7 +144,7 @@ function drawBullets(world) {
             var bullet = world.bullets[key];
             ctx.beginPath();
             ctx.arc(bullet.posX, bullet.posY, bullet.radius, 0, Math.PI * 2);
-            ctx.fillStyle = "#0095DD";
+            ctx.fillStyle = "#412924";
             ctx.fill();
             ctx.closePath();
         }
@@ -149,16 +156,20 @@ function draw(ctx, world) {
     drawBullets(world);
     drawWalls(world);
     drawTanks(world);
-    // drawMessages(world);
+    drawMessages(world);
 }
 
 function drawMessages(world) {
-    $('#gameLog').html('');
+    $('#game-log').html('');
     for (var i = 0; i < world.messages.length; i++) {
         var message = world.messages[i];
         var time = new Date(message.timestamp);
-        $('#gameLog').append('<p>' + time.getHours() + ':' + time.getMinutes() + ':' + time.getSeconds() + ' - ' + message.message + '</p>');
+        $('#game-log').html(formatTimeElement(time.getHours()) + ':' + formatTimeElement(time.getMinutes()) + ':' + formatTimeElement(time.getSeconds()) + ' - ' + message.message);
     }
+}
+
+function formatTimeElement(timeElement) {
+    return timeElement < 10 ? '0' + timeElement : timeElement;
 }
 
 function rotateTankLeft() {
@@ -175,10 +186,7 @@ function rotateTankRight() {
 
 function moveTankForward() {
     var tank = world.tanks[tankId];
-    if (tank.speed < 2) {
-        tank.speed += 0.2;
-    }
-    console.log("Tank Speed: " + tank.speed);
+    tank.speed += 0.4;
     moveTank(tankId, tank.speed, tank.rotation);
 }
 
