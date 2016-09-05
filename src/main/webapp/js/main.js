@@ -109,6 +109,7 @@ function drawWalls(world) {
         var wall = world.map.walls[i];
         ctx.beginPath();
         ctx.fillStyle = pattern;
+        // ctx.fillStyle = '#96775a';
         ctx.fillRect(wall.posX, wall.posY, wall.width, wall.height);
     }
 }
@@ -178,7 +179,7 @@ function drawScores(world) {
     for (var key in world.tanks) {
         if (world.tanks.hasOwnProperty(key)) {
             var tank = world.tanks[key];
-            $('#scores').append(tank.id + ':' + tank.killCount + ' kills  ');
+            $('#scores').append('<p>' + tank.id + ':' + tank.killCount + ' kills' + '</p>');
         }
     }
 }
@@ -218,13 +219,17 @@ $(document).ready(function () {
         key = e.keyCode;
         if (key == 37) {
             rotateTankLeft();
-        } else if (key == 38) {
+        }
+        if (key == 38) {
             moveTankForward();
-        } else if (key == 39) {
+        }
+        if (key == 39) {
             rotateTankRight();
-        } else if (key == 40) {
+        }
+        if (key == 40) {
             moveTankBackwards();
-        } else if (key == 32) {
+        }
+        if (key == 32) {
             fireBullet();
         }
     });
