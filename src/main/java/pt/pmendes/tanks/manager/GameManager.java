@@ -104,6 +104,7 @@ public class GameManager {
             if (!tank.hasFiredBullet(bullet) && tank.isCollidingWith(bullet)) {
                 gameFrame.removeTank(tank.getId());
                 gameFrame.removeBullet(bullet.getId());
+                gameFrame.getTanks().get(bullet.getTankId()).increaseKillCount();
                 tank.decreaseBulletCount();
                 GameMessage message = new GameMessage();
                 message.setPlayerId(tank.getId());

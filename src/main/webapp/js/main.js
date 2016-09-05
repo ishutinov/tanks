@@ -157,6 +157,7 @@ function draw(ctx, world) {
     drawWalls(world);
     drawTanks(world);
     drawMessages(world);
+    drawScores(world);
 }
 
 function drawMessages(world) {
@@ -170,6 +171,16 @@ function drawMessages(world) {
 
 function formatTimeElement(timeElement) {
     return timeElement < 10 ? '0' + timeElement : timeElement;
+}
+
+function drawScores(world) {
+    $('#scores').html('');
+    for (var key in world.tanks) {
+        if (world.tanks.hasOwnProperty(key)) {
+            var tank = world.tanks[key];
+            $('#scores').append(tank.id + ':' + tank.killCount + ' kills  ');
+        }
+    }
 }
 
 function rotateTankLeft() {

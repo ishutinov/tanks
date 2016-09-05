@@ -21,6 +21,7 @@ public class Tank extends BaseModel {
     private String color;
     private double speed;
     private int bulletCount = 0;
+    private int killCount = 0;
 
     private Map<String, Boolean> isVisibleToMap = new HashMap<String, Boolean>();
 
@@ -213,4 +214,11 @@ public class Tank extends BaseModel {
         }
     }
 
+    public int getKillCount() {
+        return killCount;
+    }
+
+    public void increaseKillCount() {
+        killCount += 1;
+    }
 }
