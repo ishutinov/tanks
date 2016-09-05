@@ -5,6 +5,9 @@ package pt.pmendes.tanks.model;
  */
 public class Wall extends BaseModel {
 
+    public static final int MIN_SIZE = 20;
+    public static final int MAX_SIZE = 200;
+
     private final double width;
     private double height;
 

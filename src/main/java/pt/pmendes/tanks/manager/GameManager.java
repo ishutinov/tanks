@@ -2,7 +2,6 @@ package pt.pmendes.tanks.manager;
 
 import org.springframework.stereotype.Component;
 import pt.pmendes.tanks.model.*;
-import pt.pmendes.tanks.util.Properties;
 
 import java.util.ArrayList;
 import java.util.Collection;

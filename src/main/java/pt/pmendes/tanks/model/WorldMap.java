@@ -47,8 +47,8 @@ public class WorldMap {
     private Wall createRandomWall() {
         double wallPosX = ThreadLocalRandom.current().nextInt(10, width - 10);
         double wallPosY = ThreadLocalRandom.current().nextInt(10, height - 10);
-        double width = ThreadLocalRandom.current().nextInt(20, 200);
-        double height = ThreadLocalRandom.current().nextInt(20, 200);
+        double width = ThreadLocalRandom.current().nextInt(Wall.MIN_SIZE, Wall.MAX_SIZE);
+        double height = ThreadLocalRandom.current().nextInt(Wall.MIN_SIZE, Wall.MAX_SIZE);
         return new Wall(UUID.randomUUID().toString(), wallPosX, wallPosY, width, height);
     }
 }

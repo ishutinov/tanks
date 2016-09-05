@@ -1,7 +1,5 @@
 package pt.pmendes.tanks.model;
 
-import pt.pmendes.tanks.util.Properties;
-
 /**
  * Created by pmendes.
  */

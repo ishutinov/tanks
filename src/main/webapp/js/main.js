@@ -88,6 +88,9 @@ function createContext(world) {
         ctx = canvas.getContext("2d");
     canvas.width = world.map.width;
     canvas.height = world.map.height;
+    ctx.webkitImageSmoothingEnabled = false;
+    ctx.mozImageSmoothingEnabled = false;
+    ctx.imageSmoothingEnabled = false; /// future
     return ctx;
 }
 
@@ -108,8 +111,8 @@ function drawWalls(world) {
     for (var i = 0; i < world.map.walls.length; i++) {
         var wall = world.map.walls[i];
         ctx.beginPath();
-        ctx.fillStyle = pattern;
-        // ctx.fillStyle = '#96775a';
+        // ctx.fillStyle = pattern;
+        ctx.fillStyle = '#96775a';
         ctx.fillRect(wall.posX, wall.posY, wall.width, wall.height);
     }
 }
