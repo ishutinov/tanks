@@ -5,7 +5,7 @@ import java.io.Serializable;
 /**
  * Created by pmendes.
  */
-public class MoveTankMessage implements Serializable {
+public class RotateTankTurretMessage implements Serializable {
     private String tankId;
 
     public String getTankId() {

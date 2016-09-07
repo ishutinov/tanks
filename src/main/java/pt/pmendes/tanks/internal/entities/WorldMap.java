@@ -1,4 +1,4 @@
-package pt.pmendes.tanks.model;
+package pt.pmendes.tanks.internal.entities;
 
 import pt.pmendes.tanks.util.Properties;
 
@@ -13,12 +13,12 @@ import java.util.concurrent.ThreadLocalRandom;
 public class WorldMap {
     private int width;
     private int height;
-    private Collection<Wall> walls;
+    private Collection<pt.pmendes.tanks.internal.entities.Wall> walls;
 
     public WorldMap() {
         this.width = Properties.CANVAS_DEFAULT_WIDTH;
         this.height = Properties.CANVAS_DEFAULT_HEIGHT;
-        this.walls = new ArrayList<Wall>();
+        this.walls = new ArrayList<pt.pmendes.tanks.internal.entities.Wall>();
         for (int i = 0; i < Properties.NUMBER_OF_INNER_WALLS; i++) {
             this.walls.add(createRandomWall());
         }
@@ -40,15 +40,15 @@ public class WorldMap {
         this.height = height;
     }
 
-    public Collection<Wall> getWalls() {
+    public Collection<pt.pmendes.tanks.internal.entities.Wall> getWalls() {
         return walls;
     }
 
-    private Wall createRandomWall() {
+    private pt.pmendes.tanks.internal.entities.Wall createRandomWall() {
         double wallPosX = ThreadLocalRandom.current().nextInt(10, width - 10);
         double wallPosY = ThreadLocalRandom.current().nextInt(10, height - 10);
-        double width = ThreadLocalRandom.current().nextInt(Wall.MIN_SIZE, Wall.MAX_SIZE);
-        double height = ThreadLocalRandom.current().nextInt(Wall.MIN_SIZE, Wall.MAX_SIZE);
-        return new Wall(UUID.randomUUID().toString(), wallPosX, wallPosY, width, height);
+        double width = ThreadLocalRandom.current().nextInt(pt.pmendes.tanks.internal.entities.Wall.MIN_SIZE, pt.pmendes.tanks.internal.entities.Wall.MAX_SIZE);
+        double height = ThreadLocalRandom.current().nextInt(pt.pmendes.tanks.internal.entities.Wall.MIN_SIZE, pt.pmendes.tanks.internal.entities.Wall.MAX_SIZE);
+        return new pt.pmendes.tanks.internal.entities.Wall(UUID.randomUUID().toString(), wallPosX, wallPosY, width, height);
     }
 }

@@ -46,4 +46,5 @@ body {
     color: antiquewhite;
     font-size: 1.1em;
     font-weight: bold;
+    z-index: 100001;
 }

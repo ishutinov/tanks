@@ -1,4 +1,4 @@
-package pt.pmendes.tanks.model;
+package pt.pmendes.tanks.internal.entities;
 
 /**
  * Created by pmendes.

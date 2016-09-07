@@ -6,7 +6,7 @@
     <artifactId>tanks</artifactId>
     <packaging>war</packaging>
     <version>1.0-SNAPSHOT</version>
-    <name>Tank Server Webapp</name>
+    <name>Tanks!</name>
 
 
     <properties>
@@ -16,6 +16,7 @@
         <junit.version>4.12</junit.version>
         <jersey.version>1.8</jersey.version>
         <jetty-plugin.version>9.3.10.v20160621</jetty-plugin.version>
+        <rxjava.version>1.1.9</rxjava.version>
     </properties>
 
     <dependencies>
@@ -134,6 +135,14 @@
             <artifactId>jetty-client</artifactId>
             <version>${jetty-plugin.version}</version>
         </dependency>
+
+        <!-- ReactiveX Java dependency -->
+        <dependency>
+            <groupId>io.reactivex</groupId>
+            <artifactId>rxjava</artifactId>
+            <version>${rxjava.version}</version>
+        </dependency>
+
     </dependencies>
 
     <build>

@@ -3,6 +3,7 @@ var ctx = null;
 var world = {};
 var tankId = null;
 var tankImg = null;
+var turretImg = null;
 
 function setConnected(connected) {
     document.getElementById('connect').disabled = connected;
@@ -14,8 +15,7 @@ function setConnected(connected) {
 
 function connect() {
     // init the canvas size with the client viewport
-    $.post('/rest/map/width/' + window.innerWidth + '/height/' + window.innerHeight, {}, function (result) {
-    });
+    $.post('/rest/map/width/' + window.innerWidth + '/height/' + window.innerHeight, {}, null);
     var socket = new SockJS('/ws/tank');
     stompClient = Stomp.over(socket);
     // turn off the debug messages
@@ -27,13 +27,12 @@ function connect() {
             if (ctx === null) {
                 ctx = createContext(world);
             }
-            draw(ctx, world);
         });
     });
 }
 
 function reset() {
-    $.post('/rest/tanks/reset', {}, function (result) {
+    $.post('/rest/map/reset', {}, function (result) {
         sendMessage(tankId, tankId + ' has reseted the game');
     });
 }
@@ -51,6 +50,7 @@ function join() {
         tankId = name;
         document.getElementById('join').style.visibility = 'hidden';
         sendMessage(tankId, tankId + ' has joined');
+        window.requestAnimationFrame(draw);
     });
 }
 
@@ -69,15 +69,45 @@ function sendMessage(tankId, message) {
     }));
 }
 
-function moveTank(tankId, speed, rotation) {
-    stompClient.send("/tank/move", {priority: 0}, JSON.stringify({
-        tankId: tankId,
-        speed: speed,
-        rotation: rotation
+function sendMoveTankForwardMessage(tankId) {
+    stompClient.send("/tank/move/forward", {priority: 0}, JSON.stringify({
+        tankId: tankId
     }));
 }
 
-function fireBullet() {
+
+function sendMoveTankBackwardMessage(tankId) {
+    stompClient.send("/tank/move/backward", {priority: 0}, JSON.stringify({
+        tankId: tankId
+    }));
+}
+
+
+function sendRotateTankRightMessage(tankId) {
+    stompClient.send("/tank/rotate/right", {priority: 0}, JSON.stringify({
+        tankId: tankId
+    }));
+}
+
+function sendRotateTankLeftMessage(tankId) {
+    stompClient.send("/tank/rotate/left", {priority: 0}, JSON.stringify({
+        tankId: tankId
+    }));
+}
+
+function sendRotateTankTurretRightMessage(tankId) {
+    stompClient.send("/tank/turret/rotate/right", {priority: 0}, JSON.stringify({
+        tankId: tankId
+    }));
+}
+
+function sendRotateTankTurretLeftMessage(tankId) {
+    stompClient.send("/tank/turret/rotate/left", {priority: 0}, JSON.stringify({
+        tankId: tankId
+    }));
+}
+
+function sendFireBulletMessage() {
     stompClient.send("/tank/fire", {priority: 0}, JSON.stringify({
         tankId: tankId
     }));
@@ -88,9 +118,6 @@ function createContext(world) {
         ctx = canvas.getContext("2d");
     canvas.width = world.map.width;
     canvas.height = world.map.height;
-    ctx.webkitImageSmoothingEnabled = false;
-    ctx.mozImageSmoothingEnabled = false;
-    ctx.imageSmoothingEnabled = false; /// future
     return ctx;
 }
 
@@ -124,15 +151,20 @@ function drawTanks(world) {
             ctx.drawImage(tankImg, -50, -50, tank.width, tank.height);
         };
         tankImg.src = 'img/tank.png';
+
+        turretImg = new Image();
+        turretImg.onload = function () {
+            ctx.drawImage(turretImg, -50, -50, tank.turret.width, tank.turret.height);
+        };
+        turretImg.src = 'img/tank_turret.png';
     };
     var drawTank = function (tank) {
         if (tankImg === null) {
             createTank(tank);
         }
         if (tank.isVisibility[tankId]) {
-            // TODO: round on the server
-            drawRotatedImage(ctx, tankImg, Math.round(tank.posX), Math.round(tank.posY), tank.rotation);
-            // drawRotatedImage(ctx, tankImg,tank.posX, tank.posY, tank.rotation);
+            drawRotatedImage(ctx, tankImg, tank.posX, tank.posY, tank.rotation);
+            drawRotatedImage(ctx, turretImg, tank.turret.posX, tank.turret.posY, tank.turret.rotation);
         }
     };
     for (var key in world.tanks) {
@@ -155,14 +187,16 @@ function drawBullets(world) {
     }
 }
 
-function draw(ctx, world) {
+function draw(timestamp) {
     ctx.clearRect(0, 0, world.map.width, world.map.width);
     drawBullets(world);
     drawWalls(world);
     drawTanks(world);
-    drawMessages(world);
-    drawScores(world);
+    // drawMessages(world);
+    // drawScores(world);
+    window.requestAnimationFrame(draw);
 }
+
 
 function drawMessages(world) {
     $('#game-log').html('');
@@ -187,39 +221,50 @@ function drawScores(world) {
     }
 }
 
+function pivotTurretLeft() {
+    sendRotateTankTurretLeftMessage(tankId);
+}
+
+function pivotTurretRight() {
+    sendRotateTankTurretRightMessage(tankId);
+}
+
 function rotateTankLeft() {
-    var tank = world.tanks[tankId];
-    tank.rotation -= 3;
-    moveTank(tankId, 0, tank.rotation);
+    sendRotateTankLeftMessage(tankId);
 }
 
 function rotateTankRight() {
-    var tank = world.tanks[tankId];
-    tank.rotation += 3;
-    moveTank(tankId, 0, tank.rotation);
+    sendRotateTankRightMessage(tankId);
 }
 
 function moveTankForward() {
-    var tank = world.tanks[tankId];
-    tank.speed += 0.4;
-    moveTank(tankId, tank.speed, tank.rotation);
+    sendMoveTankForwardMessage(tankId)
 }
 
 function moveTankBackwards() {
-    var tank = world.tanks[tankId];
-    tank.speed = -1;
-    moveTank(tankId, tank.speed, tank.rotation);
-}
-
-function stopTank() {
-    var tank = world.tanks[tankId];
-    tank.speed = 0;
-    moveTank(tankId, tank.speed, tank.rotation);
+    sendMoveTankBackwardMessage(tankId)
 }
 
 $(document).ready(function () {
-    $(document).bind('keydown', function (e) {
-        key = e.keyCode;
+
+    var keys = {};
+    $(document).keydown(function (e) {
+        keys[e.which] = true;
+        for (var i in keys) {
+            if (!keys.hasOwnProperty(i)) continue;
+            execute(i);
+        }
+    });
+
+    $(document).keyup(function (e) {
+        delete keys[e.which];
+        for (var i in keys) {
+            if (!keys.hasOwnProperty(i)) continue;
+            execute(i);
+        }
+    });
+
+    function execute(key) {
         if (key == 37) {
             rotateTankLeft();
         }
@@ -232,14 +277,18 @@ $(document).ready(function () {
         if (key == 40) {
             moveTankBackwards();
         }
-        if (key == 32) {
-            fireBullet();
+        if (key == 83) {
+            // 's'
+            sendFireBulletMessage();
         }
-    });
-    $(document).bind('keyup', function (e) {
-        key = e.keyCode;
-        if (key == 38 || key == 40) {
-            stopTank();
+        if (key == 65) {
+            // 'a' - pivot left
+            pivotTurretLeft();
         }
-    });
+        if (key == 68) {
+            // 'd' - pivot right
+            pivotTurretRight();
+        }
+    }
+
 });

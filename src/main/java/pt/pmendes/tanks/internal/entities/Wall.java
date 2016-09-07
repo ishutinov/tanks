@@ -1,12 +1,12 @@
-package pt.pmendes.tanks.model;
+package pt.pmendes.tanks.internal.entities;
 
 /**
  * Created by pmendes.
  */
-public class Wall extends BaseModel {
+public class Wall extends pt.pmendes.tanks.internal.entities.BaseModel {
 
-    public static final int MIN_SIZE = 20;
-    public static final int MAX_SIZE = 200;
+    public static final int MIN_SIZE = 30;
+    public static final int MAX_SIZE = 100;
 
     private final double width;
     private double height;
@@ -18,12 +18,12 @@ public class Wall extends BaseModel {
     }
 
 
-    public boolean isCollidingWith(BaseModel model) {
+    public boolean isCollidingWith(pt.pmendes.tanks.internal.entities.BaseModel model) {
         return model.getPosX() >= getPosX() && model.getPosX() <= (getPosX() + width) &&
                 model.getPosY() >= getPosY() && model.getPosY() <= (getPosY() + height);
     }
 
-    public boolean contains(Tuple<Double> pos) {
+    public boolean contains(pt.pmendes.tanks.internal.entities.Tuple<Double> pos) {
         return pos.getX() >= getPosX() && pos.getX() <= getPosX() + getWidth() &&
                 pos.getY() >= getPosY() && pos.getY() <= getPosY() + getHeight();
     }
