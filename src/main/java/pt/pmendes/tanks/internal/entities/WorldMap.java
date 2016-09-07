@@ -1,11 +1,7 @@
 package pt.pmendes.tanks.internal.entities;
 
-import pt.pmendes.tanks.util.Properties;
-
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.UUID;
-import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * Created by pmendes.
@@ -13,15 +9,20 @@ import java.util.concurrent.ThreadLocalRandom;
 public class WorldMap {
     private int width;
     private int height;
-    private Collection<pt.pmendes.tanks.internal.entities.Wall> walls;
+    private Collection<Wall> walls;
 
-    public WorldMap() {
-        this.width = Properties.CANVAS_DEFAULT_WIDTH;
-        this.height = Properties.CANVAS_DEFAULT_HEIGHT;
-        this.walls = new ArrayList<pt.pmendes.tanks.internal.entities.Wall>();
-        for (int i = 0; i < Properties.NUMBER_OF_INNER_WALLS; i++) {
-            this.walls.add(createRandomWall());
-        }
+    public WorldMap(int height, int width) {
+        this.height = height;
+        this.width = width;
+    }
+
+    public void initMap() {
+        this.walls = new ArrayList<Wall>();
+        this.walls.add(createLeftWall());
+        this.walls.add(createRightWall());
+        this.walls.add(createTopWall());
+        this.walls.add(createBottomWall());
+        this.walls.add(createMiddleWall());
     }
 
     public int getWidth() {
@@ -40,15 +41,51 @@ public class WorldMap {
         this.height = height;
     }
 
-    public Collection<pt.pmendes.tanks.internal.entities.Wall> getWalls() {
+    public Collection<Wall> getWalls() {
         return walls;
     }
 
-    private pt.pmendes.tanks.internal.entities.Wall createRandomWall() {
-        double wallPosX = ThreadLocalRandom.current().nextInt(10, width - 10);
-        double wallPosY = ThreadLocalRandom.current().nextInt(10, height - 10);
-        double width = ThreadLocalRandom.current().nextInt(pt.pmendes.tanks.internal.entities.Wall.MIN_SIZE, pt.pmendes.tanks.internal.entities.Wall.MAX_SIZE);
-        double height = ThreadLocalRandom.current().nextInt(pt.pmendes.tanks.internal.entities.Wall.MIN_SIZE, pt.pmendes.tanks.internal.entities.Wall.MAX_SIZE);
-        return new pt.pmendes.tanks.internal.entities.Wall(UUID.randomUUID().toString(), wallPosX, wallPosY, width, height);
+
+    private Wall createLeftWall() {
+        double wallPosX = 200;
+        double wallPosY = 150;
+        double wallWidth = 40;
+        double wallHeight = height - 300;
+        return new Wall(wallPosX, wallPosY, wallWidth, wallHeight);
     }
+
+
+    private Wall createRightWall() {
+        double wallPosX = width - 200;
+        double wallPosY = 150;
+        double wallWidth = 40;
+        double wallHeight = height - 300;
+        return new Wall(wallPosX, wallPosY, wallWidth, wallHeight);
+    }
+
+
+    private Wall createTopWall() {
+        double wallPosX = 400;
+        double wallPosY = 100;
+        double wallWidth = width - 800;
+        double wallHeight = 40;
+        return new Wall(wallPosX, wallPosY, wallWidth, wallHeight);
+    }
+
+    private Wall createBottomWall() {
+        double wallPosX = 400;
+        double wallPosY = height - 150;
+        double wallWidth = width - 800;
+        double wallHeight = 40;
+        return new Wall(wallPosX, wallPosY, wallWidth, wallHeight);
+    }
+
+    private Wall createMiddleWall() {
+        double wallPosX = (width / 2 - 20);
+        double wallPosY = (height / 2 - 80);
+        double wallWidth = 40;
+        double wallHeight = 160;
+        return new Wall(wallPosX, wallPosY, wallWidth, wallHeight);
+    }
+
 }

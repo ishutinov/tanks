@@ -10,7 +10,7 @@ import java.util.concurrent.ThreadLocalRandom;
 /**
  * Created by pmendes.
  */
-public class Tank extends pt.pmendes.tanks.internal.entities.BaseModel {
+public class Tank extends BaseModel {
     public static final int TANK_WIDTH = 22;
     public static final int TANK_HEIGHT = 52;
     private static final int TANK_MAX_BACKWARDS_SPEED = -2;
@@ -26,6 +26,7 @@ public class Tank extends pt.pmendes.tanks.internal.entities.BaseModel {
     private double speed;
     private int bulletCount = 0;
     private int killCount = 0;
+    private int health = 100;
 
     private Map<String, Boolean> isVisibleToMap = new HashMap<String, Boolean>();
 
@@ -35,7 +36,6 @@ public class Tank extends pt.pmendes.tanks.internal.entities.BaseModel {
         setRotation(tankRotation);
         turret = new Turret(id, startPosition.getX(), startPosition.getY(), tankRotation);
         isVisibleToMap.put(getId(), true);
-
     }
 
     public Tuple<Double> calculateNewPosition(double speed) {
@@ -232,6 +232,14 @@ public class Tank extends pt.pmendes.tanks.internal.entities.BaseModel {
             gamma = ((b - d) * (r - a) + (c - a) * (s - b)) / det;
             return (0 < lambda && lambda < 1) && (0 < gamma && gamma < 1);
         }
+    }
+
+    public int getHealth() {
+        return health;
+    }
+
+    public void setHealth(int health) {
+        this.health = health;
     }
 
     private boolean isVisibleTo(Tank tank, Collection<Wall> walls) {

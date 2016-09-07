@@ -4,6 +4,7 @@ import org.springframework.stereotype.Component;
 import pt.pmendes.tanks.api.GameDirector;
 import pt.pmendes.tanks.api.TankDirector;
 import pt.pmendes.tanks.internal.entities.*;
+import pt.pmendes.tanks.util.Properties;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -19,17 +20,22 @@ public class TanksGameDirector implements GameDirector, TankDirector {
 
     private Frame frame;
 
+    // testing purposes
     public TanksGameDirector() {
-        this.frame = new Frame(new WorldMap());
+        this.frame = new Frame(new WorldMap(Properties.CANVAS_DEFAULT_HEIGHT, Properties.CANVAS_DEFAULT_WIDTH));
     }
 
     public void reset() {
-        this.frame = new Frame(new WorldMap());
+        int height = this.frame.getMap().getHeight();
+        int width = this.frame.getMap().getWidth();
+        this.frame = new Frame(new WorldMap(Properties.CANVAS_DEFAULT_HEIGHT, Properties.CANVAS_DEFAULT_WIDTH));
+        init(width, height);
     }
 
     public void init(int canvasWidth, int canvasHeight) {
         getFrame().getMap().setWidth(canvasWidth);
         getFrame().getMap().setHeight(canvasHeight);
+        getFrame().getMap().initMap();
     }
 
     public synchronized Tank moveTankForward(String tankId) {
@@ -74,7 +80,7 @@ public class TanksGameDirector implements GameDirector, TankDirector {
         return tank;
     }
 
-    public Tank rotateTankTurretLeft(String tankId) {
+    public synchronized Tank rotateTankTurretLeft(String tankId) {
         Tank tank = null;
         if (frame.getTanks().containsKey(tankId)) {
             tank = frame.getTanks().get(tankId);
@@ -83,7 +89,7 @@ public class TanksGameDirector implements GameDirector, TankDirector {
         return tank;
     }
 
-    public Tank rotateTankTurretRight(String tankId) {
+    public synchronized Tank rotateTankTurretRight(String tankId) {
         Tank tank = null;
         if (frame.getTanks().containsKey(tankId)) {
             tank = frame.getTanks().get(tankId);
@@ -115,7 +121,7 @@ public class TanksGameDirector implements GameDirector, TankDirector {
         return frame.getTanks().get(tankId);
     }
 
-    public void fireBullet(String tankId) {
+    public synchronized void fireBullet(String tankId) {
         Tank tank = getTank(tankId);
         if (tank != null && tank.canFireBullet()) {
             Bullet newBullet = new Bullet(UUID.randomUUID().toString(), tank.getId(), tank.getBulletStartingPositionX(), tank.getBulletStartingPositionY(), tank.getTurret().getRotation());
@@ -132,16 +138,28 @@ public class TanksGameDirector implements GameDirector, TankDirector {
         }
     }
 
-    private void updateBullets(Bullet bullet) {
-        bullet.move();
-        removeOutOfBoundsBullets(bullet);
-        for (Wall wall : frame.getMap().getWalls()) {
-            if (wall.isCollidingWith(bullet)) {
-                frame.removeBullet(bullet.getId());
-                getTank(bullet.getTankId()).decreaseBulletCount();
-            }
-        }
+    public Tank getTank(String tankId) {
+        return frame.getTanks().get(tankId);
+    }
 
+    public Collection<Tank> getTanks() {
+        return getFrame().getTanks().values();
+    }
+
+    public Frame getFrame() {
+        return frame;
+    }
+
+    public void addGameMessage(Message message) {
+        frame.addGameMessage(message);
+    }
+
+    private Collection<Bullet> getBullets() {
+        return getFrame().getBullets().values();
+    }
+
+    private Collection<Wall> getWalls() {
+        return getFrame().getMap().getWalls();
     }
 
     private void updateTanks(Bullet bullet) {
@@ -160,34 +178,22 @@ public class TanksGameDirector implements GameDirector, TankDirector {
         }
     }
 
+    private void updateBullets(Bullet bullet) {
+        bullet.move();
+        removeOutOfBoundsBullets(bullet);
+        for (Wall wall : frame.getMap().getWalls()) {
+            if (wall.isCollidingWith(bullet)) {
+                frame.removeBullet(bullet.getId());
+                getTank(bullet.getTankId()).decreaseBulletCount();
+            }
+        }
+
+    }
+
     private void removeOutOfBoundsBullets(Bullet bullet) {
         if (bullet.isOutOfBounds(getFrame().getMap().getWidth(), getFrame().getMap().getHeight())) {
             frame.removeBullet(bullet.getId());
             getTank(bullet.getTankId()).decreaseBulletCount();
         }
-    }
-
-    public Tank getTank(String tankId) {
-        return frame.getTanks().get(tankId);
-    }
-
-    public Collection<Tank> getTanks() {
-        return getFrame().getTanks().values();
-    }
-
-    private Collection<Bullet> getBullets() {
-        return getFrame().getBullets().values();
-    }
-
-    private Collection<Wall> getWalls() {
-        return getFrame().getMap().getWalls();
-    }
-
-    public Frame getFrame() {
-        return frame;
-    }
-
-    public void addGameMessage(Message message) {
-        frame.addGameMessage(message);
     }
 }
