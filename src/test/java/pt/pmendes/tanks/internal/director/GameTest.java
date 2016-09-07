@@ -3,7 +3,7 @@ package pt.pmendes.tanks.internal.tankDirector;
 import org.junit.Before;
 import pt.pmendes.tanks.api.GameDirector;
 import pt.pmendes.tanks.api.TankDirector;
-import pt.pmendes.tanks.internal.manager.TanksGameDirector;
+import pt.pmendes.tanks.internal.director.TanksGameDirector;
 
 import static junit.framework.Assert.assertNull;
 import static junit.framework.TestCase.assertEquals;

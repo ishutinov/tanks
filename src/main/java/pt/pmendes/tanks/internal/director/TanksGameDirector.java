@@ -1,4 +1,4 @@
-package pt.pmendes.tanks.internal.manager;
+package pt.pmendes.tanks.internal.director;
 
 import org.springframework.stereotype.Component;
 import pt.pmendes.tanks.api.GameDirector;
