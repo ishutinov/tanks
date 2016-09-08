@@ -15,6 +15,8 @@ import pt.pmendes.tanks.ws.message.FireBulletMessage;
 import pt.pmendes.tanks.ws.message.MoveTankMessage;
 import pt.pmendes.tanks.ws.message.RotateTankTurretMessage;
 
+import java.util.concurrent.ThreadLocalRandom;
+
 /**
  * Created by pmendes.
  */
@@ -68,7 +70,7 @@ public class WebSocketController {
     }
 
     @MessageMapping("/tank/fire")
-    public void handleFireBullet(FireBulletMessage fireBulletMessage) {
+    public void handleFireBullet(FireBulletMessage fireBulletMessage) throws InterruptedException {
         logger.debug(toString(), "Firing bullet from tank: " + fireBulletMessage.getTankId());
         tankDirector.fireBullet(fireBulletMessage.getTankId());
     }

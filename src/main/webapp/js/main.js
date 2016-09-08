@@ -1,294 +1,342 @@
-var stompClient = null;
-var ctx = null;
-var world = {};
-var tankId = null;
-var tankImg = null;
-var turretImg = null;
+var game = null;
+function Game() {
+    this.ctx = null;
+    this.world = {};
+    this.tank = null;
+    this.network = new Network();
+    this.scores = null;
+    this.messages = null;
+    this.isConnected = false;
 
-function setConnected(connected) {
-    document.getElementById('connect').disabled = connected;
-    document.getElementById('disconnect').disabled = !connected;
-    document.getElementById('rejoin').disabled = !connected;
-    document.getElementById('reset').disabled = !connected;
-    document.getElementById('join').style.visibility = connected ? 'visible' : 'hidden';
+    this.getCtx = function () {
+        return this.ctx;
+    };
+
+    this.getWorld = function () {
+        return this.world;
+    };
 }
 
-function connect() {
-    // init the canvas size with the client viewport
-    $.post('/rest/map/width/' + window.innerWidth + '/height/' + window.innerHeight, {}, null);
-    var socket = new SockJS('/ws/tank');
-    stompClient = Stomp.over(socket);
-    // turn off the debug messages
-    stompClient.debug = null;
-    stompClient.connect({}, function (frame) {
-        setConnected(true);
-        stompClient.subscribe('/topic/world', function (message) {
-            world = JSON.parse(message.body);
-            if (ctx === null) {
-                ctx = createContext(world);
-            }
-        });
-    });
-}
-
-function reset() {
+Game.prototype.reset = function () {
     $.post('/rest/map/reset', {}, function (result) {
-        sendMessage(tankId, tankId + ' has reseted the game');
+        game.network.sendMessage(game.tank.tankId, game.tank.tankId + ' has reseted the game');
     });
-}
+};
 
-function disconnect() {
-    if (stompClient != null) {
-        stompClient.disconnect();
+Game.prototype.setConnected = function (isConnected) {
+    document.getElementById('connect').disabled = isConnected;
+    document.getElementById('disconnect').disabled = !isConnected;
+    document.getElementById('rejoin').disabled = !isConnected;
+    document.getElementById('reset').disabled = !isConnected;
+    document.getElementById('join').style.visibility = isConnected ? 'visible' : 'hidden';
+    game.isConnected = isConnected;
+};
+
+Game.prototype.disconnect = function () {
+    if (game.network.client != null) {
+        game.network.client.disconnect();
     }
-    setConnected(false);
-}
+    game.setConnected(false);
+};
 
-function join() {
+Game.prototype.join = function () {
     var name = document.getElementById('name').value;
     $.post('/rest/tanks/' + name, {}, function (result) {
-        tankId = name;
+        if (!game) game = new Game();
+        game.tank = new Tank(name);
         document.getElementById('join').style.visibility = 'hidden';
-        sendMessage(tankId, tankId + ' has joined');
-        window.requestAnimationFrame(draw);
+        game.network.sendMessage(game.tank.tankId + ' has joined');
+        window.requestAnimationFrame(game.draw);
     });
-}
+};
 
-function rejoin() {
+Game.prototype.rejoin = function () {
     var name = document.getElementById('name').value;
     $.post('/rest/tanks/' + name, {}, function (result) {
-        tankId = name;
-        sendMessage(tankId, tankId + ' has rejoined');
+        game.tank.tankId = name;
+        game.sendMessage(game.tank.tankId, tank.tankId + ' has rejoined');
     });
-}
-
-function sendMessage(tankId, message) {
-    stompClient.send("/message", {priority: 2}, JSON.stringify({
-        playerId: tankId,
-        message: message
-    }));
-}
-
-function sendMoveTankForwardMessage(tankId) {
-    stompClient.send("/tank/move/forward", {priority: 0}, JSON.stringify({
-        tankId: tankId
-    }));
-}
+};
 
 
-function sendMoveTankBackwardMessage(tankId) {
-    stompClient.send("/tank/move/backward", {priority: 0}, JSON.stringify({
-        tankId: tankId
-    }));
-}
+Game.prototype.connect = function () {
+    var connect;
+    (connect = function () {
+        // init the canvas size with the client viewport
+        $.post('/rest/map/width/' + window.innerWidth + '/height/' + window.innerHeight, {}, null);
+        var socket = new SockJS('/ws/tank');
+        var stompClient = Stomp.over(socket);
+        // turn off the debug messages
+        stompClient.debug = null;
+        stompClient.connect({}, function (frame) {
+            game.setConnected(true);
+            stompClient.subscribe('/topic/world', function (message) {
+                game.world = JSON.parse(message.body);
+                if (game.ctx === null) {
+                    var canvas = document.getElementById("canvas"),
+                        ctx = canvas.getContext("2d");
+                    canvas.width = game.world.map.width;
+                    canvas.height = game.world.map.height;
+                    game.ctx = ctx;
+                }
+            });
+            game.network.client = stompClient;
+        });
+    })();
+};
 
 
-function sendRotateTankRightMessage(tankId) {
-    stompClient.send("/tank/rotate/right", {priority: 0}, JSON.stringify({
-        tankId: tankId
-    }));
-}
+Game.prototype.drawRotatedImage = function (image, x, y, angle) {
+    var TO_RADIANS = Math.PI / 180;
+    this.getCtx().save();
+    this.getCtx().translate(x, y);
+    this.getCtx().rotate(angle * TO_RADIANS);
+    this.getCtx().drawImage(image, -(image.width / 2), -(image.height / 2));
+    this.getCtx().restore();
+};
 
-function sendRotateTankLeftMessage(tankId) {
-    stompClient.send("/tank/rotate/left", {priority: 0}, JSON.stringify({
-        tankId: tankId
-    }));
-}
-
-function sendRotateTankTurretRightMessage(tankId) {
-    stompClient.send("/tank/turret/rotate/right", {priority: 0}, JSON.stringify({
-        tankId: tankId
-    }));
-}
-
-function sendRotateTankTurretLeftMessage(tankId) {
-    stompClient.send("/tank/turret/rotate/left", {priority: 0}, JSON.stringify({
-        tankId: tankId
-    }));
-}
-
-function sendFireBulletMessage() {
-    stompClient.send("/tank/fire", {priority: 0}, JSON.stringify({
-        tankId: tankId
-    }));
-}
-
-function createContext(world) {
-    var canvas = document.getElementById("canvas"),
-        ctx = canvas.getContext("2d");
-    canvas.width = world.map.width;
-    canvas.height = world.map.height;
-    return ctx;
-}
-
-var TO_RADIANS = Math.PI / 180;
-function drawRotatedImage(ctx, image, x, y, angle) {
-    ctx.save();
-    ctx.translate(x, y);
-    ctx.rotate(angle * TO_RADIANS);
-    ctx.drawImage(image, -(image.width / 2), -(image.height / 2));
-    ctx.restore();
-}
-
-function drawWalls(world) {
+Game.prototype.drawWalls = function () {
     var rocksBackground = new Image();
     rocksBackground.src = 'img/rocks_background.jpg';
-    var pattern = ctx.createPattern(rocksBackground, 'repeat');
-
-    for (var i = 0; i < world.map.walls.length; i++) {
-        var wall = world.map.walls[i];
-        ctx.beginPath();
-        ctx.fillStyle = pattern;
+    var pattern = this.getCtx().createPattern(rocksBackground, 'repeat');
+    for (var i = 0; i < this.getWorld().map.walls.length; i++) {
+        var wall = this.getWorld().map.walls[i];
+        this.getCtx().beginPath();
+        this.getCtx().fillStyle = pattern;
         // ctx.fillStyle = '#96775a';
-        ctx.fillRect(wall.posX, wall.posY, wall.width, wall.height);
+        this.getCtx().fillRect(wall.posX, wall.posY, wall.width, wall.height);
     }
-}
+};
 
-function drawTanks(world) {
-    var createTank = function (tank) {
-        tankImg = new Image();
-        tankImg.onload = function () {
-            ctx.drawImage(tankImg, -50, -50, tank.width, tank.height);
+Game.prototype.drawTanks = function () {
+    var __createTank__ = function (tank) {
+        game.tank.tankImg = new Image();
+        game.tank.tankImg.onload = function () {
+            game.ctx.drawImage(game.tank.tankImg, -50, -50, tank.width, tank.height);
         };
-        tankImg.src = 'img/tank.png';
+        game.tank.tankImg.src = 'img/tank.png';
 
-        turretImg = new Image();
-        turretImg.onload = function () {
-            ctx.drawImage(turretImg, -50, -50, tank.turret.width, tank.turret.height);
+        game.tank.turretImg = new Image();
+        game.tank.turretImg.onload = function () {
+            game.ctx.drawImage(game.tank.turretImg, -50, -50, tank.turret.width, tank.turret.height);
         };
-        turretImg.src = 'img/tank_turret.png';
+        game.tank.turretImg.src = 'img/tank_turret.png';
     };
-    var drawTank = function (tank) {
-        if (tankImg === null) {
-            createTank(tank);
+
+    var __drawTank__ = function (tank) {
+        if (game.tank.tankImg === null) {
+            __createTank__(tank);
         }
-        if (tank.isVisibility[tankId]) {
-            drawRotatedImage(ctx, tankImg, tank.posX, tank.posY, tank.rotation);
-            drawRotatedImage(ctx, turretImg, tank.turret.posX, tank.turret.posY, tank.turret.rotation);
+        if (tank.isVisibility[game.tank.tankId]) {
+            game.drawRotatedImage(game.tank.tankImg, tank.posX, tank.posY, tank.rotation);
+            game.drawRotatedImage(game.tank.turretImg, tank.turret.posX, tank.turret.posY, tank.turret.rotation);
         }
     };
-    for (var key in world.tanks) {
-        if (world.tanks.hasOwnProperty(key)) {
-            drawTank(world.tanks[key]);
+    for (var key in this.getWorld().tanks) {
+        if (this.getWorld().tanks.hasOwnProperty(key)) {
+            __drawTank__(this.getWorld().tanks[key]);
         }
     }
-}
+};
 
-function drawBullets(world) {
-    for (var key in world.bullets) {
-        if (world.bullets.hasOwnProperty(key)) {
-            var bullet = world.bullets[key];
-            ctx.beginPath();
-            ctx.arc(bullet.posX, bullet.posY, bullet.radius, 0, Math.PI * 2);
-            ctx.fillStyle = "#412924";
-            ctx.fill();
-            ctx.closePath();
+Game.prototype.drawBullets = function () {
+    for (var key in this.getWorld().bullets) {
+        if (this.getWorld().bullets.hasOwnProperty(key)) {
+            var bullet = this.getWorld().bullets[key];
+            game.ctx.beginPath();
+            game.ctx.arc(bullet.posX, bullet.posY, bullet.radius, 0, Math.PI * 2);
+            game.ctx.fillStyle = "#412924";
+            game.ctx.fill();
+            game.ctx.closePath();
         }
     }
-}
-
-function draw(timestamp) {
-    ctx.clearRect(0, 0, world.map.width, world.map.width);
-    drawBullets(world);
-    drawWalls(world);
-    drawTanks(world);
-    // drawMessages(world);
-    // drawScores(world);
-    window.requestAnimationFrame(draw);
-}
+};
 
 
-function drawMessages(world) {
-    $('#game-log').html('');
-    for (var i = 0; i < world.messages.length; i++) {
-        var message = world.messages[i];
-        var time = new Date(message.timestamp);
-        $('#game-log').html(formatTimeElement(time.getHours()) + ':' + formatTimeElement(time.getMinutes()) + ':' + formatTimeElement(time.getSeconds()) + ' - ' + message.message);
-    }
-}
-
-function formatTimeElement(timeElement) {
-    return timeElement < 10 ? '0' + timeElement : timeElement;
-}
-
-function drawScores(world) {
-    $('#scores').html('');
-    for (var key in world.tanks) {
-        if (world.tanks.hasOwnProperty(key)) {
-            var tank = world.tanks[key];
-            $('#scores').append('<p>' + tank.id + ':' + tank.killCount + ' kills' + '</p>');
-        }
-    }
-}
-
-function pivotTurretLeft() {
-    sendRotateTankTurretLeftMessage(tankId);
-}
-
-function pivotTurretRight() {
-    sendRotateTankTurretRightMessage(tankId);
-}
-
-function rotateTankLeft() {
-    sendRotateTankLeftMessage(tankId);
-}
-
-function rotateTankRight() {
-    sendRotateTankRightMessage(tankId);
-}
-
-function moveTankForward() {
-    sendMoveTankForwardMessage(tankId)
-}
-
-function moveTankBackwards() {
-    sendMoveTankBackwardMessage(tankId)
-}
-
-$(document).ready(function () {
-
-    var keys = {};
-    $(document).keydown(function (e) {
-        keys[e.which] = true;
-        for (var i in keys) {
-            if (!keys.hasOwnProperty(i)) continue;
-            execute(i);
-        }
-    });
-
-    $(document).keyup(function (e) {
-        delete keys[e.which];
-        for (var i in keys) {
-            if (!keys.hasOwnProperty(i)) continue;
-            execute(i);
-        }
-    });
-
-    function execute(key) {
+Game.prototype.draw = function (timestamp) {
+    var __executeAction__ = function (key) {
         if (key == 37) {
-            rotateTankLeft();
+            game.tank.rotateTankLeft();
         }
         if (key == 38) {
-            moveTankForward();
+            game.tank.moveTankForward();
         }
         if (key == 39) {
-            rotateTankRight();
+            game.tank.rotateTankRight();
         }
         if (key == 40) {
-            moveTankBackwards();
+            game.tank.moveTankBackwards();
         }
         if (key == 83) {
             // 's'
-            sendFireBulletMessage();
+            game.tank.fire();
         }
         if (key == 65) {
             // 'a' - pivot left
-            pivotTurretLeft();
+            game.tank.pivotTurretLeft();
         }
         if (key == 68) {
             // 'd' - pivot right
-            pivotTurretRight();
+            game.tank.pivotTurretRight();
+        }
+    };
+
+    game.ctx.clearRect(0, 0, game.world.map.width, game.world.map.width);
+    if(!game.isConnected) return;
+    for (var i in keys) {
+        if (!keys.hasOwnProperty(i)) continue;
+        __executeAction__(i);
+    }
+    game.drawBullets();
+    game.drawWalls();
+    game.drawTanks();
+    game.drawMessages();
+    game.drawScores();
+    window.requestAnimationFrame(game.draw);
+};
+
+
+Game.prototype.drawMessages = function () {
+    var __formatTimeElement__ = function (timeElement) {
+        return timeElement < 10 ? '0' + timeElement : timeElement;
+    };
+
+    if (!game.messages) game.messages = document.getElementById('game-log');
+
+    game.messages.innerHTML = '';
+    for (var i = 0; i < game.world.messages.length; i++) {
+        var message = game.world.messages[i];
+        var time = new Date(message.timestamp);
+        game.messages.innerHTML = __formatTimeElement__(time.getHours()) + ':' + __formatTimeElement__(time.getMinutes()) + ':' + __formatTimeElement__(time.getSeconds()) + ' - ' + message.message;
+    }
+};
+
+Game.prototype.drawScores = function () {
+    if (!game.scores) game.scores = document.getElementById('scores');
+    game.scores.innerHTML = '';
+    for (var key in game.world.tanks) {
+        if (game.world.tanks.hasOwnProperty(key)) {
+            var tank = game.world.tanks[key];
+            var p = document.createElement("P");
+            var t = document.createTextNode(tank.id + ':' + tank.killCount + ' kills');
+            p.appendChild(t);
+            game.scores.appendChild(p);
         }
     }
+};
 
+
+function Network() {
+    this.client = null;
+
+    this.getClient = function () {
+        return this.client;
+    }
+}
+
+Network.prototype.sendMoveTankForwardMessage = function (tankId) {
+    this.getClient().send("/tank/move/forward", {priority: 0}, JSON.stringify({
+        tankId: tankId
+    }));
+};
+
+
+Network.prototype.sendMoveTankBackwardMessage = function (tankId) {
+    this.getClient().send("/tank/move/backward", {priority: 0}, JSON.stringify({
+        tankId: tankId
+    }));
+};
+
+
+Network.prototype.sendRotateTankRightMessage = function (tankId) {
+    this.getClient().send("/tank/rotate/right", {priority: 0}, JSON.stringify({
+        tankId: tankId
+    }));
+};
+
+Network.prototype.sendRotateTankLeftMessage = function (tankId) {
+    this.getClient().send("/tank/rotate/left", {priority: 0}, JSON.stringify({
+        tankId: tankId
+    }));
+};
+
+Network.prototype.sendRotateTankTurretRightMessage = function (tankId) {
+    this.getClient().send("/tank/turret/rotate/right", {priority: 0}, JSON.stringify({
+        tankId: tankId
+    }));
+};
+
+Network.prototype.sendRotateTankTurretLeftMessage = function (tankId) {
+    this.getClient().send("/tank/turret/rotate/left", {priority: 0}, JSON.stringify({
+        tankId: tankId
+    }));
+};
+
+Network.prototype.sendFireBulletMessage = function (tankId) {
+    this.getClient().send("/tank/fire", {priority: 0}, JSON.stringify({
+        tankId: tankId
+    }));
+};
+
+Network.prototype.sendMessage = function (message) {
+    this.getClient().send("/message", {priority: 2}, JSON.stringify({
+        playerId: game.tank.tankId,
+        message: message
+    }));
+};
+
+
+function Tank(tankId) {
+    this.tankId = tankId;
+    this.tankImg = null;
+    this.turretImg = null;
+
+    this.getTankId = function () {
+        return this.tankId;
+    };
+}
+
+Tank.prototype.moveTankForward = function () {
+    game.network.sendMoveTankForwardMessage(this.getTankId());
+};
+
+Tank.prototype.moveTankBackwards = function () {
+    game.network.sendMoveTankBackwardMessage(this.getTankId());
+};
+
+Tank.prototype.rotateTankLeft = function () {
+    game.network.sendRotateTankLeftMessage(this.getTankId());
+};
+
+Tank.prototype.rotateTankRight = function () {
+    game.network.sendRotateTankRightMessage(this.getTankId());
+};
+
+Tank.prototype.pivotTurretLeft = function () {
+    game.network.sendRotateTankTurretLeftMessage(this.getTankId());
+};
+
+Tank.prototype.pivotTurretRight = function () {
+    game.network.sendRotateTankTurretRightMessage(this.getTankId());
+};
+
+Tank.prototype.fire = function () {
+    game.network.sendFireBulletMessage(this.getTankId());
+};
+
+var keys = {};
+$(document).ready(function () {
+    $(document).keydown(function (e) {
+        keys[e.which] = true;
+
+    });
+    $(document).keyup(function (e) {
+        delete keys[e.which];
+    });
 });
+
+
+var init = function () {
+    game = new Game();
+    game.disconnect();
+};

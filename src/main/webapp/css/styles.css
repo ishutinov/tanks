@@ -43,6 +43,7 @@ body {
 
 #scores {
     position: fixed;
+    margin-left: 10px;
     top: 40px;
     color: antiquewhite;
     font-size: 1.1em;

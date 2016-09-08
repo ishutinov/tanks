@@ -41,6 +41,18 @@
         </dependency>
 
         <dependency>
+            <groupId>guru.phi</groupId>
+            <artifactId>phi-js-core</artifactId>
+            <version>3.0-SNAPSHOT</version>
+        </dependency>
+
+        <dependency>
+            <groupId>guru.phi</groupId>
+            <artifactId>phi-js-dom</artifactId>
+            <version>3.0-SNAPSHOT</version>
+        </dependency>
+
+        <dependency>
             <groupId>com.sun.jersey</groupId>
             <artifactId>jersey-json</artifactId>
             <version>${jersey.version}</version>

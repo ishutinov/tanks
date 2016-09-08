@@ -3,6 +3,7 @@ package pt.pmendes.tanks.internal.entities;
 import pt.pmendes.tanks.util.Properties;
 
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
@@ -11,12 +12,12 @@ import java.util.concurrent.ThreadLocalRandom;
  * Created by pmendes.
  */
 public class Tank extends BaseModel {
-    public static final int TANK_WIDTH = 22;
-    public static final int TANK_HEIGHT = 52;
+    public static final int TANK_WIDTH = 36;
+    public static final int TANK_HEIGHT = 70;
     private static final int TANK_MAX_BACKWARDS_SPEED = -2;
-    private static final int TANK_MAX_FORWARD_SPEED = 6;
-    private static final double TANK_ACCELERATION = 0.3;
-    private static final double TANK_ROTATION_SPEED = 3;
+    private static final int TANK_MAX_FORWARD_SPEED = 3;
+    private static final double TANK_ACCELERATION = 0.05;
+    private static final double TANK_ROTATION_SPEED = 2;
 
     private Turret turret;
 
@@ -27,6 +28,7 @@ public class Tank extends BaseModel {
     private int bulletCount = 0;
     private int killCount = 0;
     private int health = 100;
+    private long latestBulletFiredTimestamp = 0;
 
     private Map<String, Boolean> isVisibleToMap = new HashMap<String, Boolean>();
 
@@ -90,14 +92,14 @@ public class Tank extends BaseModel {
 
 
     public void rotateTankLeft() {
-        double newRotation = (getRotation() - TANK_ROTATION_SPEED);
+        double newRotation = speed >= 0 ? (getRotation() - TANK_ROTATION_SPEED) : (getRotation() + TANK_ROTATION_SPEED);
         double dr = newRotation - getRotation();
         getTurret().setRotation(getTurret().getRotation() + dr);
         setRotation(newRotation);
     }
 
     public void rotateTankRight() {
-        double newRotation = (getRotation() + TANK_ROTATION_SPEED);
+        double newRotation = speed >= 0 ? (getRotation() + TANK_ROTATION_SPEED) : (getRotation() - TANK_ROTATION_SPEED);
         double dr = newRotation - getRotation();
         getTurret().setRotation(getTurret().getRotation() + dr);
         setRotation(newRotation);
@@ -196,12 +198,14 @@ public class Tank extends BaseModel {
     }
 
     public boolean canFireBullet() {
-        return bulletCount < Properties.MAX_BULLET_COUNT_PER_TANK;
+        long dtime = new Date().getTime() - latestBulletFiredTimestamp;
+        return bulletCount < Properties.MAX_BULLET_COUNT_PER_TANK && dtime >= turret.getRateOfFire();
     }
 
     public synchronized void increaseBulletCount() {
         if (this.bulletCount <= Properties.MAX_BULLET_COUNT_PER_TANK) {
             this.bulletCount += 1;
+            this.latestBulletFiredTimestamp = new Date().getTime();
         }
     }
 
@@ -281,5 +285,13 @@ public class Tank extends BaseModel {
 
     public Turret getTurret() {
         return turret;
+    }
+
+    public long getLatestBulletFiredTimestamp() {
+        return latestBulletFiredTimestamp;
+    }
+
+    public void setLatestBulletFiredTimestamp(long latestBulletFiredTimestamp) {
+        this.latestBulletFiredTimestamp = latestBulletFiredTimestamp;
     }
 }

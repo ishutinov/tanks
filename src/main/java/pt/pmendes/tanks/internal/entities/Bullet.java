@@ -4,7 +4,7 @@ package pt.pmendes.tanks.internal.entities;
  * Created by pmendes.
  */
 public class Bullet extends BaseModel {
-    private static final double BULLET_SPEED = 7;
+    private static final double BULLET_SPEED = 15;
     private static final int BULLET_RADIUS = 2;
     private static final int BULLET_DAMAGE = 20;
 
