@@ -1,16 +1,17 @@
 var game = null;
 function Game() {
-    this.ctx = null;
     this.world = {};
     this.tank = null;
+    this.tanks = {};
+    this.turrets = {};
+    this.bullets = {};
     this.network = new Network();
     this.scores = null;
     this.messages = null;
+    this.scene = null;
+    this.camera = null;
+    this.renderer = null;
     this.isConnected = false;
-
-    this.getCtx = function () {
-        return this.ctx;
-    };
 
     this.getWorld = function () {
         return this.world;
@@ -46,7 +47,8 @@ Game.prototype.join = function () {
         game.tank = new Tank(name);
         document.getElementById('join').style.visibility = 'hidden';
         game.network.sendMessage(game.tank.tankId + ' has joined');
-        window.requestAnimationFrame(game.draw);
+        window.requestAnimationFrame(game.render);
+        game.drawWalls();
     });
 };
 
@@ -72,88 +74,152 @@ Game.prototype.connect = function () {
             game.setConnected(true);
             stompClient.subscribe('/topic/world', function (message) {
                 game.world = JSON.parse(message.body);
-                if (game.ctx === null) {
-                    var canvas = document.getElementById("canvas"),
-                        ctx = canvas.getContext("2d");
-                    canvas.width = game.world.map.width;
-                    canvas.height = game.world.map.height;
-                    game.ctx = ctx;
-                }
             });
             game.network.client = stompClient;
         });
     })();
 };
 
-
-Game.prototype.drawRotatedImage = function (image, x, y, angle) {
-    var TO_RADIANS = Math.PI / 180;
-    this.getCtx().save();
-    this.getCtx().translate(x, y);
-    this.getCtx().rotate(angle * TO_RADIANS);
-    this.getCtx().drawImage(image, -(image.width / 2), -(image.height / 2));
-    this.getCtx().restore();
-};
-
 Game.prototype.drawWalls = function () {
-    var rocksBackground = new Image();
-    rocksBackground.src = 'img/rocks_background.jpg';
-    var pattern = this.getCtx().createPattern(rocksBackground, 'repeat');
-    for (var i = 0; i < this.getWorld().map.walls.length; i++) {
-        var wall = this.getWorld().map.walls[i];
-        this.getCtx().beginPath();
-        this.getCtx().fillStyle = pattern;
-        // ctx.fillStyle = '#96775a';
-        this.getCtx().fillRect(wall.posX, wall.posY, wall.width, wall.height);
-    }
+    var loader = new THREE.TextureLoader();
+
+    // draw floor
+    loader.load('img/background.png', function (texture) {
+        var geometry = new THREE.PlaneGeometry(window.innerWidth, window.innerHeight, 1, 1);
+        texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+        texture.repeat.set(2, 2);
+        var material = new THREE.MeshBasicMaterial({map: texture});
+        var floor = new THREE.Mesh(geometry, material);
+        floor.receiveShadow = true;
+        floor.material.side = THREE.DoubleSide;
+        floor.position.z = -25;
+        game.scene.add(floor);
+    });
+
+
+    loader.load('img/rocks_background.jpg', function (texture) {
+        for (var i = 0; i < game.world.map.walls.length; i++) {
+            var wall = game.world.map.walls[i];
+            var wallDepth = wall.dept;
+            var wallQuality = 1;
+            // texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+            // texture.repeat.set(1, 1);
+            // var material = new THREE.MeshBasicMaterial({map: texture});
+            var material = new THREE.MeshBasicMaterial({color: 0x313131});
+            var wallObject = new THREE.Mesh(
+                new THREE.CubeGeometry(
+                    wall.width,
+                    wall.height,
+                    wallDepth,
+                    wallQuality,
+                    wallQuality,
+                    wallQuality),
+                material);
+            game.scene.add(wallObject);
+            wallObject.position.x = wall.posX;
+            wallObject.position.y = wall.posY;
+            wallObject.position.z = 0;
+        }
+    });
+
+
 };
 
 Game.prototype.drawTanks = function () {
-    var __createTank__ = function (tank) {
-        game.tank.tankImg = new Image();
-        game.tank.tankImg.onload = function () {
-            game.ctx.drawImage(game.tank.tankImg, -50, -50, tank.width, tank.height);
-        };
-        game.tank.tankImg.src = 'img/tank.png';
+    var __createTankObject__ = function (tank) {
+        var tankQuality = 1;
+        var material = new THREE.MeshBasicMaterial({color: 0x800000});
+        var tankObject = new THREE.Mesh(
+            new THREE.CubeGeometry(
+                tank.width,
+                tank.height,
+                tank.depth,
+                tankQuality,
+                tankQuality,
+                tankQuality),
+            material);
+        tankObject.castShadow = true;
+        tankObject.receiveShadow = false;
+        game.tanks[tank.id] = tankObject;
+        game.scene.add(tankObject);
 
-        game.tank.turretImg = new Image();
-        game.tank.turretImg.onload = function () {
-            game.ctx.drawImage(game.tank.turretImg, -50, -50, tank.turret.width, tank.turret.height);
-        };
-        game.tank.turretImg.src = 'img/tank_turret.png';
+        var geometry = new THREE.CylinderGeometry(5, 5, tank.turret.height, 32);
+        var material = new THREE.MeshBasicMaterial({color: 0xffff00});
+        var tankTurretObject = new THREE.Mesh(geometry, material);
+        tankTurretObject.castShadow = true;
+        tankTurretObject.receiveShadow = false;
+        tankTurretObject.geometry.translate(0, -tank.turret.height / 2, 0);
+        game.turrets[tank.id] = tankTurretObject;
+        game.scene.add(tankTurretObject);
     };
+    var TO_RADIANS = Math.PI / 180;
+    var __moveTankObject__ = function (tank) {
+        var tankObject = game.tanks[tank.id];
+        tankObject.position.x = tank.posX;
+        tankObject.position.y = tank.posY;
+        tankObject.position.z = 0;
+        tankObject.rotation.z = tank.rotation * TO_RADIANS;
 
-    var __drawTank__ = function (tank) {
-        if (game.tank.tankImg === null) {
-            __createTank__(tank);
-        }
-        if (tank.isVisibility[game.tank.tankId]) {
-            game.drawRotatedImage(game.tank.tankImg, tank.posX, tank.posY, tank.rotation);
-            game.drawRotatedImage(game.tank.turretImg, tank.turret.posX, tank.turret.posY, tank.turret.rotation);
-        }
+        var tankTurretObject = game.turrets[tank.id];
+        tankTurretObject.position.x = tank.posX;
+        tankTurretObject.position.y = tank.posY;
+        tankTurretObject.position.z = 20;
+        tankTurretObject.rotation.z = tank.turret.rotation * TO_RADIANS;
     };
     for (var key in this.getWorld().tanks) {
         if (this.getWorld().tanks.hasOwnProperty(key)) {
-            __drawTank__(this.getWorld().tanks[key]);
+            var tank = this.getWorld().tanks[key];
+            if (!game.tanks[key]) __createTankObject__(tank);
+            __moveTankObject__(tank);
+        }
+    }
+
+    for (var tankKey in game.tanks) {
+        if (!this.getWorld().tanks[tankKey]) {
+            var tankObject = game.tanks[tankKey];
+            var turretObject = game.turrets[tankKey];
+            delete game.tanks[tankObject.id];
+            delete game.turrets[turretObject.id];
+            game.scene.remove(tankObject);
+            game.scene.remove(turretObject);
         }
     }
 };
 
+
 Game.prototype.drawBullets = function () {
+    var __createBulletObject__ = function (bullet) {
+        var geometry = new THREE.SphereGeometry(bullet.radius);
+        var material = new THREE.MeshBasicMaterial({color: 0xffff00});
+        var bulletObject = new THREE.Mesh(geometry, material);
+
+        game.bullets[bullet.id] = bulletObject;
+        game.scene.add(bulletObject);
+    };
+
     for (var key in this.getWorld().bullets) {
         if (this.getWorld().bullets.hasOwnProperty(key)) {
             var bullet = this.getWorld().bullets[key];
-            game.ctx.beginPath();
-            game.ctx.arc(bullet.posX, bullet.posY, bullet.radius, 0, Math.PI * 2);
-            game.ctx.fillStyle = "#412924";
-            game.ctx.fill();
-            game.ctx.closePath();
+            if (!game.bullets[key]) __createBulletObject__(bullet);
+            var bulletObject = game.bullets[key];
+            bulletObject.position.x = bullet.posX;
+            bulletObject.position.y = bullet.posY;
+            bulletObject.position.z = 10;
         }
     }
+
+    for (var bulletKey in game.bullets) {
+        if (!this.getWorld().bullets[bulletKey]) {
+            var bulletObject = game.bullets[bulletKey];
+            delete game.bullets[bulletObject.id];
+            game.scene.remove(bulletObject);
+        }
+    }
+
 };
 
 
-Game.prototype.draw = function (timestamp) {
+Game.prototype.render = function (timestamp) {
     var __executeAction__ = function (key) {
         if (key == 37) {
             game.tank.rotateTankLeft();
@@ -181,18 +247,21 @@ Game.prototype.draw = function (timestamp) {
         }
     };
 
-    game.ctx.clearRect(0, 0, game.world.map.width, game.world.map.width);
-    if(!game.isConnected) return;
+    if (!game.isConnected) return;
     for (var i in keys) {
         if (!keys.hasOwnProperty(i)) continue;
         __executeAction__(i);
     }
     game.drawBullets();
-    game.drawWalls();
     game.drawTanks();
     game.drawMessages();
     game.drawScores();
-    window.requestAnimationFrame(game.draw);
+
+    game.controls.update();
+
+    game.renderer.render(game.scene, game.camera);
+    window.requestAnimationFrame(game.render);
+
 };
 
 
@@ -233,6 +302,12 @@ function Network() {
         return this.client;
     }
 }
+
+Network.prototype.sendStopTankMessage = function (tankId) {
+    this.getClient().send("/tank/stop", {priority: 0}, JSON.stringify({
+        tankId: tankId
+    }));
+};
 
 Network.prototype.sendMoveTankForwardMessage = function (tankId) {
     this.getClient().send("/tank/move/forward", {priority: 0}, JSON.stringify({
@@ -288,13 +363,14 @@ Network.prototype.sendMessage = function (message) {
 
 function Tank(tankId) {
     this.tankId = tankId;
-    this.tankImg = null;
-    this.turretImg = null;
-
     this.getTankId = function () {
         return this.tankId;
     };
 }
+
+Tank.prototype.stopTank = function () {
+    game.network.sendStopTankMessage(this.getTankId());
+};
 
 Tank.prototype.moveTankForward = function () {
     game.network.sendMoveTankForwardMessage(this.getTankId());
@@ -332,6 +408,9 @@ $(document).ready(function () {
     });
     $(document).keyup(function (e) {
         delete keys[e.which];
+        if (e.keyCode == 38 || e.keyCode == 40) {
+            game.tank.stopTank();
+        }
     });
 });
 
@@ -339,4 +418,20 @@ $(document).ready(function () {
 var init = function () {
     game = new Game();
     game.disconnect();
+
+    game.scene = new THREE.Scene();
+    game.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 2000);
+    game.camera.position.z = 500;
+    game.renderer = new THREE.WebGLRenderer({antialias: true});
+    game.renderer.setSize(window.innerWidth, window.innerHeight);
+    document.body.appendChild(game.renderer.domElement);
+
+    // Light
+    var light = new THREE.PointLight(0xffffff);
+    light.position.set(0, 150, 1000);
+    light.castShadow = true;
+    light.shadowDarkness = 0.5;
+    game.scene.add(light);
+
+    game.controls = new THREE.OrbitControls(game.camera, game.renderer.domElement);
 };

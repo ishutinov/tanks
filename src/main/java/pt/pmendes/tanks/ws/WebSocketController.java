@@ -37,6 +37,11 @@ public class WebSocketController {
         tankDirector.moveTankForward(moveTankMessage.getTankId());
     }
 
+    @MessageMapping("/tank/stop")
+    public void handleTankStop(MoveTankMessage moveTankMessage) {
+        logger.debug(toString(), "Stopping tank forward: " + moveTankMessage.getTankId());
+        tankDirector.stopTank(moveTankMessage.getTankId());
+    }
 
     @MessageMapping("/tank/move/backward")
     public void handleTankMoveBackward(MoveTankMessage moveTankMessage) {

@@ -29,4 +29,7 @@ public interface TankDirector {
     Tank getTank(String tankId);
 
     Collection<Tank> getTanks();
+
+    Tank stopTank(String tankId);
+
 }

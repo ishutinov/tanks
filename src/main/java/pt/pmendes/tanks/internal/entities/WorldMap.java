@@ -47,44 +47,44 @@ public class WorldMap {
 
 
     private Wall createLeftWall() {
-        double wallPosX = 200;
-        double wallPosY = 150;
+        double wallPosX = -(width / 3);
+        double wallPosY = 0;
         double wallWidth = 40;
-        double wallHeight = height - 300;
+        double wallHeight = height / 1.5;
         return new Wall(wallPosX, wallPosY, wallWidth, wallHeight);
     }
 
 
     private Wall createRightWall() {
-        double wallPosX = width - 200;
-        double wallPosY = 150;
+        double wallPosX = (width / 3);
+        double wallPosY = 0;
         double wallWidth = 40;
-        double wallHeight = height - 300;
+        double wallHeight = height / 1.5;
         return new Wall(wallPosX, wallPosY, wallWidth, wallHeight);
     }
 
 
     private Wall createTopWall() {
-        double wallPosX = 400;
-        double wallPosY = 100;
-        double wallWidth = width - 800;
+        double wallPosX = 0;
+        double wallPosY = (height / 3);
+        double wallWidth = height / 1.5;
         double wallHeight = 40;
         return new Wall(wallPosX, wallPosY, wallWidth, wallHeight);
     }
 
     private Wall createBottomWall() {
-        double wallPosX = 400;
-        double wallPosY = height - 150;
-        double wallWidth = width - 800;
+        double wallPosX = 0;
+        double wallPosY = -(height / 3);
+        double wallWidth = height / 1.5;
         double wallHeight = 40;
         return new Wall(wallPosX, wallPosY, wallWidth, wallHeight);
     }
 
     private Wall createMiddleWall() {
-        double wallPosX = (width / 2 - 20);
-        double wallPosY = (height / 2 - 80);
+        double wallPosX = 0;
+        double wallPosY = 0;
         double wallWidth = 40;
-        double wallHeight = 160;
+        double wallHeight = height / 3;
         return new Wall(wallPosX, wallPosY, wallWidth, wallHeight);
     }
 

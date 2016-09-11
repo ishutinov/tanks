@@ -63,6 +63,6 @@ public abstract class BaseModel {
     }
 
     public boolean isOutOfBounds(int canvasWidth, int canvasHeight) {
-        return getPosX() < 0 || getPosY() < 0 || getPosX() >= canvasWidth || getPosY() >= canvasHeight;
+        return getPosX() <= -(canvasWidth / 2) || getPosX() >= (canvasWidth / 2) || getPosY() <= -(canvasHeight / 2) || getPosY() >= (canvasHeight / 2);
     }
 }

@@ -14,6 +14,7 @@ import java.util.concurrent.ThreadLocalRandom;
 public class Tank extends BaseModel {
     public static final int TANK_WIDTH = 36;
     public static final int TANK_HEIGHT = 70;
+    public static final int TANK_DEPTH = 25;
     private static final int TANK_MAX_BACKWARDS_SPEED = -2;
     private static final int TANK_MAX_FORWARD_SPEED = 3;
     private static final double TANK_ACCELERATION = 0.05;
@@ -23,6 +24,7 @@ public class Tank extends BaseModel {
 
     private int width = TANK_WIDTH;
     private int height = TANK_HEIGHT;
+    private int depth = TANK_DEPTH;
     private String color;
     private double speed;
     private int bulletCount = 0;
@@ -67,7 +69,7 @@ public class Tank extends BaseModel {
     }
 
     public boolean canMove(WorldMap map, Tuple<Double> toPosition, Collection<Tank> tanks) {
-        if (willCollideWithBoundries(toPosition.getX(), toPosition.getY(), map.getWidth(), map.getHeight())) {
+        if (willBeOutOfBoundaries(toPosition.getX(), toPosition.getY(), map.getWidth(), map.getHeight())) {
             return false;
         }
         for (Tank tank : tanks) {
@@ -75,45 +77,47 @@ public class Tank extends BaseModel {
             if (tank.getId().equals(getId())) {
                 continue;
             }
-            if (toPosition.getX() >= (tank.getPosX() - tank.getWidth()) && toPosition.getX() <= (tank.getPosX() + tank.getWidth()) &&
-                    toPosition.getY() >= (tank.getPosY() - tank.getHeight()) && toPosition.getY() <= (tank.getPosY() + tank.getHeight())) {
+            if (toPosition.getX() < tank.getPosX() + tank.getWidth() &&
+                    toPosition.getX() + width > tank.getPosX() &&
+                    toPosition.getY() < tank.getPosY() + tank.getHeight() && getPosY() + height > tank.getPosY()) {
                 return false;
             }
         }
         for (Wall wall : map.getWalls()) {
             // check to see if is colliding with inner walls
-            if (toPosition.getX() >= wall.getPosX() && toPosition.getX() <= (wall.getPosX() + wall.getWidth()) &&
-                    toPosition.getY() >= wall.getPosY() && toPosition.getY() <= (wall.getPosY() + wall.getHeight())) {
+            if (toPosition.getX() <= wall.getPosX() + (wall.getWidth() / 2) &&
+                    toPosition.getX() >= wall.getPosX() - (wall.getWidth() / 2) &&
+                    toPosition.getY() <= wall.getPosY() + (wall.getHeight() / 2) &&
+                    toPosition.getY() >= wall.getPosY() - (wall.getHeight() / 2)) {
                 return false;
             }
         }
         return true;
     }
 
-
     public void rotateTankLeft() {
-        double newRotation = speed >= 0 ? (getRotation() - TANK_ROTATION_SPEED) : (getRotation() + TANK_ROTATION_SPEED);
-        double dr = newRotation - getRotation();
-        getTurret().setRotation(getTurret().getRotation() + dr);
-        setRotation(newRotation);
-    }
-
-    public void rotateTankRight() {
         double newRotation = speed >= 0 ? (getRotation() + TANK_ROTATION_SPEED) : (getRotation() - TANK_ROTATION_SPEED);
         double dr = newRotation - getRotation();
         getTurret().setRotation(getTurret().getRotation() + dr);
         setRotation(newRotation);
     }
 
+    public void rotateTankRight() {
+        double newRotation = speed >= 0 ? (getRotation() - TANK_ROTATION_SPEED) : (getRotation() + TANK_ROTATION_SPEED);
+        double dr = newRotation - getRotation();
+        getTurret().setRotation(getTurret().getRotation() + dr);
+        setRotation(newRotation);
+    }
+
     public void rotateTankTurretLeft() {
-        double rotation = getRotation() - Turret.TURRET_TURNING_SPEED;
+        double rotation = getRotation() + Turret.TURRET_TURNING_SPEED;
         double dr = rotation - getRotation();
         getTurret().setRotation(getTurret().getRotation() + dr);
     }
 
 
     public void rotateTankTurretRight() {
-        double rotation = getRotation() + Turret.TURRET_TURNING_SPEED;
+        double rotation = getRotation() - Turret.TURRET_TURNING_SPEED;
         double dr = rotation - getRotation();
         getTurret().setRotation(getTurret().getRotation() + dr);
     }
@@ -146,7 +150,7 @@ public class Tank extends BaseModel {
         return getPosY() + ((getTurret().getHeight()) * Math.sin(radians));
     }
 
-    public boolean isCollidingWith(pt.pmendes.tanks.internal.entities.BaseModel model) {
+    public boolean isCollidingWith(BaseModel model) {
         return (Math.abs(getPosX() - model.getPosX()) <= Tank.TANK_WIDTH)
                 && (Math.abs(getPosY() - model.getPosY()) <= Tank.TANK_WIDTH);
     }
@@ -216,11 +220,11 @@ public class Tank extends BaseModel {
     }
 
 
-    public boolean willCollideWithBoundries(double toX, double toY, int canvasWidth, int canvasHeight) {
-        if (toX <= 0 || toX >= canvasWidth) {
+    public boolean willBeOutOfBoundaries(double toX, double toY, int canvasWidth, int canvasHeight) {
+        if (toX <= -(canvasWidth / 2) || toX >= (canvasWidth / 2)) {
             return true;
         }
-        return toY <= 0 || toY >= canvasHeight;
+        return toY <= -(canvasHeight / 2) || toY >= (canvasHeight / 2);
     }
 
     /**
@@ -293,5 +297,13 @@ public class Tank extends BaseModel {
 
     public void setLatestBulletFiredTimestamp(long latestBulletFiredTimestamp) {
         this.latestBulletFiredTimestamp = latestBulletFiredTimestamp;
+    }
+
+    public void stop() {
+        this.speed = 0;
+    }
+
+    public int getDepth() {
+        return depth;
     }
 }

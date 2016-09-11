@@ -6,7 +6,7 @@ package pt.pmendes.tanks.internal.entities;
 public class Turret extends BaseModel {
 
     public static final int TURRET_WIDTH = 25;
-    public static final int TURRET_HEIGHT = 69;
+    public static final int TURRET_HEIGHT = 50;
     public static final int TURRET_TURNING_SPEED = 3;
     public static final int TURRET_RATE_OF_FIRE = 300;
 

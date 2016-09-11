@@ -38,6 +38,16 @@ public class TanksGameDirector implements GameDirector, TankDirector {
         getFrame().getMap().initMap();
     }
 
+    public synchronized Tank stopTank(String tankId) {
+        Tank tank = null;
+        if (frame.getTanks().containsKey(tankId)) {
+            tank = frame.getTanks().get(tankId);
+            tank.stop();
+        }
+        return tank;
+    }
+
+
     public synchronized Tank moveTankForward(String tankId) {
         Tank tank = null;
         if (frame.getTanks().containsKey(tankId)) {
@@ -106,8 +116,8 @@ public class TanksGameDirector implements GameDirector, TankDirector {
         Tuple<Double> position;
         while (true) {
             List<Boolean> isValid = new ArrayList<Boolean>();
-            Double x = ThreadLocalRandom.current().nextDouble(Tank.TANK_WIDTH, getFrame().getMap().getWidth() - Tank.TANK_WIDTH);
-            Double y = ThreadLocalRandom.current().nextDouble(Tank.TANK_WIDTH, getFrame().getMap().getHeight() - Tank.TANK_WIDTH);
+            Double x = ThreadLocalRandom.current().nextDouble((-getFrame().getMap().getWidth() / 2) + Tank.TANK_HEIGHT, (getFrame().getMap().getWidth() / 2) - Tank.TANK_HEIGHT);
+            Double y = ThreadLocalRandom.current().nextDouble((-getFrame().getMap().getHeight() / 2) + Tank.TANK_WIDTH, (getFrame().getMap().getHeight() / 2) - Tank.TANK_WIDTH);
             position = new Tuple<Double>(x, y);
             for (Wall wall : getWalls()) {
                 isValid.add(!wall.contains(position));

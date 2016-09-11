@@ -7,8 +7,10 @@ import java.util.UUID;
  */
 public class Wall extends BaseModel {
 
+    private static final double WALL_DEPTH = 50;
     private final double width;
     private double height;
+    private double dept = WALL_DEPTH;
 
     public Wall(double posX, double posY, double width, double height) {
         super(UUID.randomUUID().toString(), posX, posY);
@@ -16,15 +18,22 @@ public class Wall extends BaseModel {
         this.height = height;
     }
 
-
-    public boolean isCollidingWith(pt.pmendes.tanks.internal.entities.BaseModel model) {
-        return model.getPosX() >= getPosX() && model.getPosX() <= (getPosX() + width) &&
-                model.getPosY() >= getPosY() && model.getPosY() <= (getPosY() + height);
+    public Wall(double posX, double posY, double width, double height, double dept) {
+        super(UUID.randomUUID().toString(), posX, posY);
+        this.width = width;
+        this.height = height;
+        this.dept = dept;
     }
 
-    public boolean contains(pt.pmendes.tanks.internal.entities.Tuple<Double> pos) {
-        return pos.getX() >= getPosX() && pos.getX() <= getPosX() + getWidth() &&
-                pos.getY() >= getPosY() && pos.getY() <= getPosY() + getHeight();
+
+    public boolean isCollidingWith(BaseModel model) {
+        return model.getPosX() >= (getPosX() - width / 2) && model.getPosX() <= (getPosX() + width / 2) &&
+                model.getPosY() >= (getPosY() - height / 2) && model.getPosY() <= (getPosY() + height / 2);
+    }
+
+    public boolean contains(Tuple<Double> pos) {
+        return pos.getX() >= (getPosX() - width / 2) && pos.getX() <= (getPosX() + width / 2) &&
+                pos.getY() >= (getPosY() - height / 2) && pos.getY() <= (getPosY() + height / 2);
     }
 
     public double getWidth() {
@@ -33,5 +42,9 @@ public class Wall extends BaseModel {
 
     public double getHeight() {
         return height;
+    }
+
+    public double getDept() {
+        return dept;
     }
 }
